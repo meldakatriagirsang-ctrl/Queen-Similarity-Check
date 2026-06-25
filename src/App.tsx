@@ -894,8 +894,16 @@ export default function App() {
         }
         setCurrentView("dashboard");
       } else {
-        const errData = await res.json();
-        setAuthError(errData.error || "Gagal masuk. Silakan periksa kembali detail Anda.");
+        let errorMessage = "Gagal masuk. Silakan periksa kembali detail Anda.";
+        try {
+          const errData = await res.json();
+          if (errData && errData.error) {
+            errorMessage = errData.error;
+          }
+        } catch (_) {
+          errorMessage = `Gagal masuk dengan status server: ${res.status}`;
+        }
+        setAuthError(errorMessage);
       }
     } catch (err) {
       console.error("Gagal melakukan autentikasi masuk:", err);
@@ -930,8 +938,16 @@ export default function App() {
         setDashboardTab("list-file");
         setCurrentView("dashboard");
       } else {
-        const errData = await res.json();
-        setAuthError(errData.error || "Pendaftaran gagal. Silakan coba lagi.");
+        let errorMessage = "Pendaftaran gagal. Silakan coba lagi.";
+        try {
+          const errData = await res.json();
+          if (errData && errData.error) {
+            errorMessage = errData.error;
+          }
+        } catch (_) {
+          errorMessage = `Pendaftaran gagal dengan status server: ${res.status}`;
+        }
+        setAuthError(errorMessage);
       }
     } catch (err) {
       console.error("Gagal melakukan registrasi pelanggan baru:", err);
