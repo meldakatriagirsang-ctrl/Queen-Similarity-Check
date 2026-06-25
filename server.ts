@@ -829,20 +829,29 @@ app.post("/api/bypassgpt/paraphrase", async (req, res) => {
     }
 
     if (apiResponse && apiResponse.ok) {
-      const resJson: any = await apiResponse.json();
-      console.log("[BypassGPT Proxy] Berhasil mendapat respons dari BypassGPT API:", JSON.stringify(resJson).substring(0, 200));
-      
-      // Handle various potential JSON response formats
-      if (resJson.data && resJson.data.output) {
-        responseText = resJson.data.output;
-      } else if (resJson.output) {
-        responseText = resJson.output;
-      } else if (resJson.data && resJson.data.text) {
-        responseText = resJson.data.text;
-      } else if (resJson.text) {
-        responseText = resJson.text;
-      } else {
-        responseText = resJson.paraphrasedText || resJson.humanizedText || "";
+      try {
+        const resText = await apiResponse.text();
+        try {
+          const resJson: any = JSON.parse(resText);
+          console.log("[BypassGPT Proxy] Berhasil mendapat respons dari BypassGPT API:", resText.substring(0, 200));
+          
+          // Handle various potential JSON response formats
+          if (resJson.data && resJson.data.output) {
+            responseText = resJson.data.output;
+          } else if (resJson.output) {
+            responseText = resJson.output;
+          } else if (resJson.data && resJson.data.text) {
+            responseText = resJson.data.text;
+          } else if (resJson.text) {
+            responseText = resJson.text;
+          } else {
+            responseText = resJson.paraphrasedText || resJson.humanizedText || "";
+          }
+        } catch (e) {
+          console.error("[BypassGPT Proxy] Invalid JSON from API, treating as error. Response:", resText.substring(0, 100));
+        }
+      } catch (e) {
+        console.error("[BypassGPT Proxy] Failed to read API response.", e);
       }
     }
 
