@@ -50,6 +50,9 @@ export interface UserProfile {
   uploadHarianSisa: number;
   totalUploadHarianLimit: number;
   password?: string;
+  sessionToken?: string;
+  resetToken?: string;
+  resetTokenExpires?: number;
 }
 
 export type AppView = "landing" | "login" | "register" | "forgot-password" | "reset-password" | "dashboard";

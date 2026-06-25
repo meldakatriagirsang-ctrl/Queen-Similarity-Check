@@ -120,6 +120,16 @@ export default function App() {
     };
   });
 
+  // Helper for authenticated requests to prevent unauthorized actions and protect data
+  const authenticatedFetch = async (url: string, options: RequestInit = {}) => {
+    const headers = {
+      ...(options.headers || {}),
+      "x-user-email": userProfile?.email || "",
+      "x-auth-token": userProfile?.sessionToken || ""
+    };
+    return fetch(url, { ...options, headers });
+  };
+
   // Customers list state (Seeded with standard accounts)
   const [customers, setCustomers] = useState<UserProfile[]>(() => {
     const saved = localStorage.getItem("queen_customers_list");
@@ -312,7 +322,7 @@ export default function App() {
     setBpParaphrasedText("");
 
     try {
-      const res = await fetch("/api/bypassgpt/paraphrase", {
+      const res = await authenticatedFetch("/api/bypassgpt/paraphrase", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -388,7 +398,7 @@ export default function App() {
       
       // 2. Background database delete
       try {
-        const res = await fetch("/api/delete-files", {
+        const res = await authenticatedFetch("/api/delete-files", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ids: idsToDelete })
@@ -806,7 +816,7 @@ export default function App() {
                   const feedbackVal = `Turnitin scan selesai. Index kemiripan: ${similarityScore}%. Seluruh naskah Anda selamat dari database repository.`;
                   
                   // Notify backend virtual DB of simulated completion
-                  fetch("/api/update-file", {
+                  authenticatedFetch("/api/update-file", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -853,63 +863,48 @@ export default function App() {
   }, [files, autoSimulationEnabled]);
 
   // Handle login triggers
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginUsername.trim()) {
       setAuthError("Username atau email tidak boleh kosong.");
       return;
     }
+    if (!loginPassword) {
+      setAuthError("Password tidak boleh kosong.");
+      return;
+    }
     
     setAuthError("");
-    const inputUser = loginUsername.toLowerCase().trim();
-    
-    // Explicit hardcoded fallback or override for primary master Admin
-    if (inputUser === "dolokimun65@yahoo.com" && loginPassword === "@Marbun656") {
-      setUserProfile({
-        username: "dolokimun",
-        fullName: "Dolok Imun Admin",
-        email: "dolokimun65@yahoo.com",
-        whatsapp: "0812-3456-7890",
-        role: "Admin",
-        kreditSisa: 9999,
-        uploadHarianSisa: 999,
-        totalUploadHarianLimit: 999
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: loginUsername,
+          password: loginPassword
+        })
       });
-      setDashboardTab("workspace-admin");
-      setCurrentView("dashboard");
-      return;
+      if (res.ok) {
+        const data = await res.json();
+        setUserProfile(data.userProfile);
+        if (data.userProfile.role === "Admin") {
+          setDashboardTab("workspace-admin");
+        } else {
+          setDashboardTab("list-file");
+        }
+        setCurrentView("dashboard");
+      } else {
+        const errData = await res.json();
+        setAuthError(errData.error || "Gagal masuk. Silakan periksa kembali detail Anda.");
+      }
+    } catch (err) {
+      console.error("Gagal melakukan autentikasi masuk:", err);
+      setAuthError("Koneksi jaringan gagal atau server tidak merespon.");
     }
-
-    // Unified customer database matching
-    const existingCust = customers.find(c => 
-      c.email.toLowerCase() === inputUser || 
-      c.username.toLowerCase() === inputUser
-    );
-
-    if (!existingCust) {
-      setAuthError("Gagal Masuk! Akun ini tidak terdaftar di database. Silakan klik pendaftaran terlebih dahulu atau hubungi Admin Kak Melda.");
-      return;
-    }
-
-    // Verify password match
-    const storedPassword = existingCust.password || "";
-    if (storedPassword && loginPassword !== storedPassword) {
-      setAuthError("Gagal Masuk! Password yang Anda masukkan tidak sesuai.");
-      return;
-    }
-
-    // Successful login!
-    setUserProfile(existingCust);
-    if (existingCust.role === "Admin") {
-      setDashboardTab("workspace-admin");
-    } else {
-      setDashboardTab("list-file");
-    }
-    setCurrentView("dashboard");
   };
 
   // Handle Register actions
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!registerName.trim() || !registerWhatsApp.trim() || !registerUsername.trim() || !registerPassword.trim()) {
       setAuthError("Mohon lengkapi nama, nomor WhatsApp, username, dan password Anda.");
@@ -917,48 +912,31 @@ export default function App() {
     }
 
     setAuthError("");
-    const cleanUsername = registerUsername.toLowerCase().trim();
-    const newEmail = registerEmail.trim() || `${cleanUsername}@kingsimilarity.com`;
-
-    // 1. Enforce unique database username check
-    const usernameTaken = customers.some(c => c.username.toLowerCase() === cleanUsername);
-    if (usernameTaken) {
-      setAuthError("Pendaftaran Gagal! Username ini sudah digunakan.");
-      return;
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: registerName,
+          whatsapp: registerWhatsApp,
+          username: registerUsername,
+          email: registerEmail,
+          password: registerPassword
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUserProfile(data.userProfile);
+        setDashboardTab("list-file");
+        setCurrentView("dashboard");
+      } else {
+        const errData = await res.json();
+        setAuthError(errData.error || "Pendaftaran gagal. Silakan coba lagi.");
+      }
+    } catch (err) {
+      console.error("Gagal melakukan registrasi pelanggan baru:", err);
+      setAuthError("Pendaftaran terhambat kendala jaringan. Silakan coba lagi nanti.");
     }
-
-    // 2. Enforce unique email check
-    const emailTaken = customers.some(c => c.email.toLowerCase() === newEmail.toLowerCase());
-    if (emailTaken) {
-      setAuthError("Pendaftaran Gagal! Email ini sudah terdaftar.");
-      return;
-    }
-
-    const newCust: UserProfile = {
-      username: cleanUsername,
-      fullName: registerName,
-      email: newEmail,
-      whatsapp: registerWhatsApp,
-      role: "Pelanggan",
-      kreditSisa: 0, // Starts at 0 credits as requested
-      uploadHarianSisa: 20,
-      totalUploadHarianLimit: 20,
-      password: registerPassword
-    };
-
-    // Store globally in customers ledger
-    const updatedList = [...customers, newCust];
-    
-    setCustomers(updatedList);
-    fetch("/api/update-customers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ customers: updatedList })
-    }).catch(err => console.error("Gagal sinkron pendaftaran baru:", err));
-
-    setUserProfile(newCust);
-    setDashboardTab("list-file");
-    setCurrentView("dashboard");
   };
 
   // Handle forgot password request
@@ -1100,7 +1078,7 @@ export default function App() {
         formData.append("fileData", fileData);
       }
 
-      const res = await fetch("/api/upload-file", {
+      const res = await authenticatedFetch("/api/upload-file", {
         method: "POST",
         body: formData
       });
@@ -1123,7 +1101,7 @@ export default function App() {
   const handleUpdateCustomersList = async (updatedList: UserProfile[]) => {
     setCustomers(updatedList);
     try {
-      await fetch("/api/update-customers", {
+      await authenticatedFetch("/api/update-customers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ customers: updatedList })
@@ -1158,7 +1136,7 @@ export default function App() {
 
   const handleResetDemoData = async () => {
     try {
-      const res = await fetch("/api/reset-demo", { method: "POST" });
+      const res = await authenticatedFetch("/api/reset-demo", { method: "POST" });
       if (res.ok) {
         const data = await res.json();
         if (data.updatedState) {
@@ -1178,7 +1156,7 @@ export default function App() {
   const handleClearAllFiles = async () => {
     if (confirm("Apakah Kak Melda yakin ingin menghapus katalog riwayat file di akun Anda?")) {
       try {
-        const res = await fetch("/api/clear-files", { method: "POST" });
+        const res = await authenticatedFetch("/api/clear-files", { method: "POST" });
         if (res.ok) {
           setFiles([]);
         }
@@ -1812,11 +1790,15 @@ export default function App() {
                       </div>
                       
                       {simulatedResetLink && (
-                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2 text-slate-700">
-                          <span className="text-[11px] text-amber-800 font-bold uppercase tracking-wider block">🔬 Mode Demo / Simulasi:</span>
-                          <p className="text-[11px] leading-relaxed">SMTP email belum diatur di server. Anda dapat menguji proses pengaturan ulang kata sandi secara langsung dengan mengeklik tautan di bawah ini:</p>
-                          <a 
-                            href={simulatedResetLink} 
+                        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4 space-y-3 text-slate-700 shadow-2xs">
+                          <span className="text-[11.5px] text-emerald-800 font-bold uppercase tracking-wider flex items-center gap-1">
+                            🔑 Tautan Pemulihan Instan (Sistem Otomatis)
+                          </span>
+                          <p className="text-[11px] leading-relaxed text-slate-600">
+                            Untuk menghindari delay pengiriman email atau kendala jaringan server SMTP, sistem telah menghasilkan tautan pemulihan langsung yang aman untuk Anda. Silakan klik tombol di bawah ini untuk segera memperbarui kata sandi Anda:
+                          </p>
+                          <button 
+                            type="button"
                             onClick={(e) => {
                               e.preventDefault();
                               const params = new URL(simulatedResetLink).searchParams;
@@ -1827,10 +1809,10 @@ export default function App() {
                               setSimulatedResetLink("");
                               setCurrentView("reset-password");
                             }}
-                            className="inline-block text-xs font-bold text-indigo-600 hover:underline bg-white px-3 py-1.5 rounded-lg border border-indigo-200 cursor-pointer"
+                            className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-4 py-2.5 rounded-xl transition duration-150 shadow-sm cursor-pointer"
                           >
-                            Buka Form Atur Ulang Sandi &rarr;
-                          </a>
+                            Buat Kata Sandi Baru Sekarang &rarr;
+                          </button>
                         </div>
                       )}
 
@@ -3044,7 +3026,7 @@ export default function App() {
                           const nextVal = !autoSimulationEnabled;
                           setAutoSimulationEnabled(nextVal);
                           try {
-                            await fetch("/api/update-settings", {
+                            await authenticatedFetch("/api/update-settings", {
                               method: "POST",
                               headers: { "Content-Type": "application/json" },
                               body: JSON.stringify({ autoSimulationEnabled: nextVal })
@@ -3121,7 +3103,7 @@ export default function App() {
                           const nextL = !isUploadLocked;
                           setIsUploadLocked(nextL);
                           try {
-                            await fetch("/api/update-settings", {
+                            await authenticatedFetch("/api/update-settings", {
                               method: "POST",
                               headers: { "Content-Type": "application/json" },
                               body: JSON.stringify({ isUploadLocked: nextL })
@@ -3362,7 +3344,7 @@ export default function App() {
                               onClick={async () => {
                                 if (!adminWorkingHoursInput.trim()) return;
                                 try {
-                                  await fetch("/api/update-settings", {
+                                  await authenticatedFetch("/api/update-settings", {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({ isUploadLocked, workingHours: adminWorkingHoursInput.trim() })
@@ -3394,7 +3376,7 @@ export default function App() {
                                 localStorage.setItem("queen_turnitin_price", adminPriceInput);
                                 setTurnitinPrice(adminPriceInput);
                                 try {
-                                  await fetch("/api/update-settings", {
+                                  await authenticatedFetch("/api/update-settings", {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({ turnitinPrice: adminPriceInput })
@@ -3427,7 +3409,7 @@ export default function App() {
                             onClick={async () => {
                               localStorage.setItem("queen_admin_announcement", adminAnnouncement);
                               try {
-                                await fetch("/api/update-settings", {
+                                const authenticatedRes = await authenticatedFetch("/api/update-settings", {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json" },
                                   body: JSON.stringify({ adminAnnouncement })
@@ -3469,7 +3451,7 @@ export default function App() {
                                 };
                                 const updated = [...extraTools, newTool];
                                 setExtraTools(updated);
-                                fetch("/api/update-settings", {
+                                authenticatedFetch("/api/update-settings", {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json" },
                                   body: JSON.stringify({ extraTools: updated })
@@ -3494,7 +3476,7 @@ export default function App() {
                                     onClick={async () => {
                                       const updated = extraTools.map(t => t.id === tool.id ? { ...t, isEnabled: !t.isEnabled } : t);
                                       setExtraTools(updated);
-                                      fetch("/api/update-settings", {
+                                      authenticatedFetch("/api/update-settings", {
                                         method: "POST",
                                         headers: { "Content-Type": "application/json" },
                                         body: JSON.stringify({ extraTools: updated })
@@ -4227,7 +4209,7 @@ export default function App() {
                   formData.append("reportFileData", textReportData);
                 }
 
-                const res = await fetch("/api/update-file", {
+                const res = await authenticatedFetch("/api/update-file", {
                   method: "POST",
                   body: formData
                 });

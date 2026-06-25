@@ -4,11 +4,12 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import fs from "fs";
-import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import admin from "firebase-admin";
 import multer from "multer";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -19,6 +20,36 @@ dotenv.config();
 
 const app = express();
 const PORT = 3000;
+
+// Apply Helmet with security configurations suitable for development and production (handles iframe containment gracefully)
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Turned off CSP to avoid blocking assets in dev-server iframe embeds
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false,
+  })
+);
+
+// Generic rate limiter for API endpoints to prevent DDoS and scanning tools
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1500, // limit each IP to 1500 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Terlalu banyak permintaan dari IP ini. Silakan coba lagi nanti." }
+});
+
+// Stricter rate limiter for sensitive authentication endpoints (login, register, forgot-password, reset-password) to stop brute-force attacks
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // limit each IP to 30 authentication requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Terlalu banyak percobaan masuk/daftar. Silakan coba lagi setelah 15 menit." }
+});
+
+// Apply API limiter to all /api routes
+app.use("/api/", apiLimiter);
 
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
@@ -31,30 +62,25 @@ if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
 
-// Initialize Firebase SDK
+// Initialize Firebase Admin SDK
 const firebaseConfigPath = path.join(process.cwd(), "firebase-applet-config.json");
 let db: any = null;
 
 if (fs.existsSync(firebaseConfigPath)) {
   try {
     const configData = JSON.parse(fs.readFileSync(firebaseConfigPath, "utf-8"));
-    const appInstance = initializeApp({
-      apiKey: configData.apiKey,
-      authDomain: configData.authDomain,
-      projectId: configData.projectId,
-      storageBucket: configData.storageBucket,
-      messagingSenderId: configData.messagingSenderId,
-      appId: configData.appId
+    admin.initializeApp({
+      projectId: configData.projectId
     });
     
     if (configData.firestoreDatabaseId) {
-      db = getFirestore(appInstance, configData.firestoreDatabaseId);
+      db = admin.firestore(configData.firestoreDatabaseId);
     } else {
-      db = getFirestore(appInstance);
+      db = admin.firestore();
     }
-    console.log("Firebase Client SDK successfully initialized on backend via API key. Targeting database:", configData.firestoreDatabaseId || "(default)");
+    console.log("Firebase Admin SDK successfully initialized on backend. Targeting database:", configData.firestoreDatabaseId || "(default)");
   } catch (err) {
-    console.error("Gagal inisialisasi Firebase Client SDK di backend:", err);
+    console.error("Gagal inisialisasi Firebase Admin SDK di backend:", err);
   }
 }
 
@@ -127,6 +153,80 @@ let cachedInMemoryState: AppState | null = null;
 let hasSuccessfullyRestoredFromFirestore = false;
 let isRestoreCompleted = false;
 
+function enforceAdminProfiles(customersList: any[]): any[] {
+  const list = [...customersList];
+  
+  // 1. Enforce Melda Katria Girsang as Admin
+  const meldaIdx = list.findIndex(c => c && c.email && c.email.toLowerCase() === "meldakatriagirsang@gmail.com");
+  const meldaProfile = {
+    username: "melda_katria",
+    fullName: "Melda Katria Girsang",
+    email: "meldakatriagirsang@gmail.com",
+    whatsapp: "0822-6185-8077",
+    role: "Admin",
+    kreditSisa: 9999,
+    uploadHarianSisa: 999,
+    totalUploadHarianLimit: 999,
+    password: "@Melda2026"
+  };
+  if (meldaIdx === -1) {
+    list.push(meldaProfile);
+  } else {
+    list[meldaIdx] = {
+      ...list[meldaIdx],
+      ...meldaProfile
+    };
+  }
+
+  // 2. Enforce Dolok Imun as Admin
+  const dolokIdx = list.findIndex(c => c && c.email && c.email.toLowerCase() === "dolokimun65@yahoo.com");
+  const dolokProfile = {
+    username: "dolokimun",
+    fullName: "Dolok Imun Admin",
+    email: "dolokimun65@yahoo.com",
+    whatsapp: "0812-3456-7890",
+    role: "Admin",
+    kreditSisa: 9999,
+    uploadHarianSisa: 999,
+    totalUploadHarianLimit: 999,
+    password: "@Marbun656"
+  };
+  if (dolokIdx === -1) {
+    list.push(dolokProfile);
+  } else {
+    list[dolokIdx] = {
+      ...list[dolokIdx],
+      ...dolokProfile
+    };
+  }
+
+  return list;
+}
+
+// Helper to authenticate user sessions securely on the server
+function getAuthorizedUser(req: any, currentState: AppState): any {
+  const email = req.headers["x-user-email"] || req.query.userEmail;
+  const token = req.headers["x-auth-token"] || req.query.authToken;
+  if (!email || !token) return null;
+  
+  const user = currentState.customers.find((c: any) => c.email && c.email.toLowerCase() === email.toLowerCase());
+  if (user && user.sessionToken === token) {
+    return user;
+  }
+  return null;
+}
+
+// Sanitize state to remove sensitive authentication tokens and plaintext passwords before returning to clients
+function sanitizeState(state: AppState): any {
+  return {
+    ...state,
+    customers: state.customers.map((c: any) => {
+      const { password, resetToken, resetTokenExpires, sessionToken, ...rest } = c;
+      return rest;
+    })
+  };
+}
+
 function loadState(): AppState {
   if (cachedInMemoryState) {
     return cachedInMemoryState;
@@ -137,6 +237,9 @@ function loadState(): AppState {
       const parsed = JSON.parse(data);
       if (parsed.isUploadLocked === undefined) parsed.isUploadLocked = false;
       if (parsed.workingHours === undefined) parsed.workingHours = "08.00 am - 09.00 pm • WITA";
+      if (parsed.customers && Array.isArray(parsed.customers)) {
+        parsed.customers = enforceAdminProfiles(parsed.customers);
+      }
       cachedInMemoryState = parsed;
       return parsed;
     }
@@ -145,7 +248,7 @@ function loadState(): AppState {
   }
   const defaultState: AppState = {
     files: DEFAULT_FILES,
-    customers: DEFAULT_CUSTOMERS,
+    customers: enforceAdminProfiles(DEFAULT_CUSTOMERS),
     extraTools: DEFAULT_EXTRA_TOOLS,
     adminAnnouncement: DEFAULT_ANNOUNCEMENT,
     autoSimulationEnabled: false,
@@ -161,18 +264,19 @@ let sseClients: any[] = [];
 
 function broadcastState(state: AppState) {
   if (sseClients.length === 0) return;
+  const sanitized = sanitizeState(state);
   const payload = {
-    files: state.files,
-    customers: state.customers,
-    extraTools: state.extraTools,
-    adminAnnouncement: state.adminAnnouncement,
-    turnitinPrice: state.turnitinPrice,
-    autoSimulationEnabled: state.autoSimulationEnabled,
-    isUploadLocked: state.isUploadLocked,
-    workingHours: state.workingHours
+    files: sanitized.files,
+    customers: sanitized.customers,
+    extraTools: sanitized.extraTools,
+    adminAnnouncement: sanitized.adminAnnouncement,
+    turnitinPrice: sanitized.turnitinPrice,
+    autoSimulationEnabled: sanitized.autoSimulationEnabled,
+    isUploadLocked: sanitized.isUploadLocked,
+    workingHours: sanitized.workingHours
   };
   const data = JSON.stringify(payload);
-  console.log(`[SSE] Broadcasting state updates to ${sseClients.length} connected clients.`);
+  console.log(`[SSE] Broadcasting sanitized state updates to ${sseClients.length} connected clients.`);
   sseClients.forEach(client => {
     try {
       client.write(`data: ${data}\n\n`);
@@ -197,7 +301,7 @@ function saveState(state: AppState) {
         return;
       }
       Promise.all([
-        setDoc(doc(db, "app", "settings"), {
+        db.collection("app").doc("settings").set({
           adminAnnouncement: state.adminAnnouncement || "",
           autoSimulationEnabled: !!state.autoSimulationEnabled,
           extraTools: state.extraTools || [],
@@ -205,10 +309,10 @@ function saveState(state: AppState) {
           isUploadLocked: !!state.isUploadLocked,
           workingHours: state.workingHours || "08.00 am - 09.00 pm • WITA"
         }),
-        setDoc(doc(db, "app", "customers"), {
+        db.collection("app").doc("customers").set({
           customers: state.customers || []
         }),
-        setDoc(doc(db, "app", "files"), {
+        db.collection("app").doc("files").set({
           files: state.files || []
         })
       ]).then(() => {
@@ -229,18 +333,18 @@ async function syncFromFirestore(attempt = 1) {
     return;
   }
   try {
-    console.log(`Attempting to restore state from Cloud Firestore (Attempt ${attempt}/5)...`);
+    console.log(`Attempting to restore state from Cloud Firestore via Admin SDK (Attempt ${attempt}/5)...`);
     const [settingsSnap, customersSnap, filesSnap] = await Promise.all([
-      getDoc(doc(db, "app", "settings")),
-      getDoc(doc(db, "app", "customers")),
-      getDoc(doc(db, "app", "files"))
+      db.collection("app").doc("settings").get(),
+      db.collection("app").doc("customers").get(),
+      db.collection("app").doc("files").get()
     ]);
 
     const state = loadState();
     let hasUpdates = false;
 
-    // Use .exists() for JS client SDK instead of .exists property
-    if (settingsSnap.exists()) {
+    // Use .exists for firebase-admin instead of .exists()
+    if (settingsSnap.exists) {
       const data = settingsSnap.data();
       if (data) {
         if (data.adminAnnouncement !== undefined) state.adminAnnouncement = data.adminAnnouncement;
@@ -253,30 +357,15 @@ async function syncFromFirestore(attempt = 1) {
       }
     }
 
-    if (customersSnap.exists()) {
+    if (customersSnap.exists) {
       const data = customersSnap.data();
       if (data && data.customers && Array.isArray(data.customers)) {
-        // Enforce Melda Katria (Admin) profile is always in customers
-        const meldaExists = data.customers.some((c: any) => c.email.toLowerCase() === "meldakatriagirsang@gmail.com");
-        if (!meldaExists) {
-          data.customers.push({
-            username: "melda_katria",
-            fullName: "Melda Katria Girsang",
-            email: "meldakatriagirsang@gmail.com",
-            whatsapp: "0822-6185-8077",
-            role: "Admin",
-            kreditSisa: 9999,
-            uploadHarianSisa: 999,
-            totalUploadHarianLimit: 999,
-            password: "@Melda2026"
-          });
-        }
-        state.customers = data.customers;
+        state.customers = enforceAdminProfiles(data.customers);
         hasUpdates = true;
       }
     }
 
-    if (filesSnap.exists()) {
+    if (filesSnap.exists) {
       const data = filesSnap.data();
       if (data && data.files && Array.isArray(data.files)) {
         state.files = data.files;
@@ -288,7 +377,7 @@ async function syncFromFirestore(attempt = 1) {
       cachedInMemoryState = state;
       fs.writeFileSync(DB_FILE, JSON.stringify(state, null, 2), "utf-8");
       hasSuccessfullyRestoredFromFirestore = true;
-      console.log("Successfully restored and cached all settings + customers + files state from Cloud Firestore!");
+      console.log("Successfully restored and cached all settings + customers + files state from Cloud Firestore via Admin SDK!");
     } else {
       console.log("No existing documents in Firestore, writing initial state to cloud...");
       hasSuccessfullyRestoredFromFirestore = true;
@@ -345,7 +434,7 @@ app.use(async (req, res, next) => {
 // REST endpoints for cross-device shared state database
 app.get("/api/state", (req, res) => {
   const currentState = loadState();
-  res.json(currentState);
+  res.json(sanitizeState(currentState));
 });
 
 app.get("/api/updates-stream", (req, res) => {
@@ -356,15 +445,16 @@ app.get("/api/updates-stream", (req, res) => {
   res.flushHeaders();
 
   const currentState = loadState();
+  const sanitized = sanitizeState(currentState);
   const payload = {
-    files: currentState.files,
-    customers: currentState.customers,
-    extraTools: currentState.extraTools,
-    adminAnnouncement: currentState.adminAnnouncement,
-    turnitinPrice: currentState.turnitinPrice,
-    autoSimulationEnabled: currentState.autoSimulationEnabled,
-    isUploadLocked: currentState.isUploadLocked,
-    workingHours: currentState.workingHours
+    files: sanitized.files,
+    customers: sanitized.customers,
+    extraTools: sanitized.extraTools,
+    adminAnnouncement: sanitized.adminAnnouncement,
+    turnitinPrice: sanitized.turnitinPrice,
+    autoSimulationEnabled: sanitized.autoSimulationEnabled,
+    isUploadLocked: sanitized.isUploadLocked,
+    workingHours: sanitized.workingHours
   };
   res.write(`data: ${JSON.stringify(payload)}\n\n`);
 
@@ -387,7 +477,15 @@ app.get("/api/updates-stream", (req, res) => {
 });
 
 app.post("/api/upload-file", upload.single("file"), async (req, res) => {
-  let { newDoc, ownerEmail, fileData } = req.body;
+  const currentState = loadState();
+
+  // Verify authentication
+  const authUser = getAuthorizedUser(req, currentState);
+  if (!authUser) {
+    return res.status(401).json({ error: "Sesi Anda telah berakhir atau tidak valid. Silakan masuk kembali." });
+  }
+
+  let { newDoc, fileData } = req.body;
   
   let docObj = newDoc;
   if (typeof newDoc === "string") {
@@ -403,12 +501,10 @@ app.post("/api/upload-file", upload.single("file"), async (req, res) => {
     return res.status(400).json({ error: "newDoc is required" });
   }
 
-  const currentState = loadState();
-
-  // Override the fileUrl to point to our high-fidelity server-side relative download link!
+  // Override ownerEmail to the actual authenticated user's email to prevent credit-theft and impersonation
   const finalDoc = {
     ...docObj,
-    ownerEmail: ownerEmail || "meldakatriagirsang@gmail.com",
+    ownerEmail: authUser.email,
     fileUrl: `/api/download/${docObj.id}`
   };
 
@@ -545,6 +641,14 @@ app.get("/api/view-report/:fileId", (req, res) => {
 });
 
 app.post("/api/update-file", upload.single("reportFile"), async (req, res) => {
+  const currentState = loadState();
+
+  // Verify Admin authorization
+  const authUser = getAuthorizedUser(req, currentState);
+  if (!authUser || authUser.role !== "Admin") {
+    return res.status(403).json({ error: "Akses ditolak. Hanya Administrator yang dapat mengubah data berkas dan laporan." });
+  }
+
   let { id, updates, reportFileData, reportFileName } = req.body;
   if (!id) {
     return res.status(400).json({ error: "file id is required" });
@@ -558,8 +662,6 @@ app.post("/api/update-file", upload.single("reportFile"), async (req, res) => {
       console.error("Gagal parsing updates JSON:", e);
     }
   }
-
-  const currentState = loadState();
 
   const oldFile = currentState.files.find(f => f.id === id);
   const isNowSelesai = oldFile && oldFile.status !== "Selesai" && updates && updates.status === "Selesai";
@@ -609,12 +711,30 @@ app.post("/api/update-file", upload.single("reportFile"), async (req, res) => {
 });
 
 app.post("/api/delete-files", (req, res) => {
+  const currentState = loadState();
+
+  // Verify authentication
+  const authUser = getAuthorizedUser(req, currentState);
+  if (!authUser) {
+    return res.status(401).json({ error: "Sesi Anda telah berakhir. Silakan masuk kembali." });
+  }
+
   const { ids } = req.body;
   if (!ids || !Array.isArray(ids)) {
     return res.status(400).json({ error: "ids array is required" });
   }
 
-  const currentState = loadState();
+  // Check if they own all the files they want to delete, or if they are Admin
+  if (authUser.role !== "Admin") {
+    const isOwnerOfAll = ids.every(id => {
+      const f = currentState.files.find(file => file.id === id);
+      return !f || f.ownerEmail?.toLowerCase() === authUser.email.toLowerCase();
+    });
+    if (!isOwnerOfAll) {
+      return res.status(403).json({ error: "Akses ditolak. Anda hanya dapat menghapus naskah milik Anda sendiri." });
+    }
+  }
+
   const UPLOADS_DIR = path.join(process.cwd(), "uploads");
 
   ids.forEach(id => {
@@ -642,6 +762,14 @@ app.post("/api/delete-files", (req, res) => {
 });
 
 app.post("/api/bypassgpt/paraphrase", async (req, res) => {
+  const currentState = loadState();
+
+  // Verify authentication
+  const authUser = getAuthorizedUser(req, currentState);
+  if (!authUser) {
+    return res.status(401).json({ error: "Sesi Anda telah berakhir atau tidak valid. Silakan masuk kembali." });
+  }
+
   const { text, mode, language, readabilityTarget } = req.body;
   if (!text || typeof text !== "string") {
     return res.status(400).json({ error: "Kolom teks asli wajib diisi." });
@@ -816,29 +944,138 @@ async function sendResetEmail(email: string, resetLink: string, fullName: string
     };
   }
 
-  const transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: {
-      user,
-      pass
-    }
-  });
+  try {
+    const transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: {
+        user,
+        pass
+      },
+      connectionTimeout: 5000, // 5 seconds connection timeout
+      greetingTimeout: 5000,   // 5 seconds greeting timeout
+      socketTimeout: 5000      // 5 seconds socket inactivity timeout
+    });
 
-  const mailOptions = {
-    from: `"Queen Similarity Check" <${from}>`,
-    to: email,
-    subject: emailSubject,
-    html: emailBodyHtml
-  };
+    const mailOptions = {
+      from: `"Queen Similarity Check" <${from}>`,
+      to: email,
+      subject: emailSubject,
+      html: emailBodyHtml
+    };
 
-  await transporter.sendMail(mailOptions);
-  return {
-    success: true,
-    simulated: false
-  };
+    await transporter.sendMail(mailOptions);
+    return {
+      success: true,
+      simulated: false
+    };
+  } catch (mailErr: any) {
+    console.error("⚠️ Gagal mengirim email pemulihan via SMTP (dialihkan ke mode simulasi langsung):", mailErr);
+    console.log("==================================================");
+    console.log("⚠️ PENGIRIMAN EMAIL SMTP GAGAL (Dialihkan ke Simulasi/Tautan Langsung):");
+    console.log("KE:", email);
+    console.log("NAMA:", fullName);
+    console.log("LINK:", resetLink);
+    console.log("==================================================");
+    return {
+      success: true,
+      simulated: true,
+      resetLink
+    };
+  }
 }
+
+app.post("/api/auth/login", authLimiter, (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ error: "Username/email dan password wajib diisi." });
+  }
+
+  const inputUser = username.toLowerCase().trim();
+  const currentState = loadState();
+
+  // Find user by email or username
+  const user = currentState.customers.find(c => 
+    (c.email && c.email.toLowerCase() === inputUser) || 
+    (c.username && c.username.toLowerCase() === inputUser)
+  );
+
+  if (!user) {
+    return res.status(401).json({ error: "Akun ini tidak terdaftar di database kami. Silakan hubungi Admin Kak Melda." });
+  }
+
+  if (user.password !== password) {
+    return res.status(401).json({ error: "Gagal Masuk! Password yang Anda masukkan salah." });
+  }
+
+  // Generate secure session token
+  const token = crypto.randomBytes(32).toString("hex");
+  user.sessionToken = token;
+
+  saveState(currentState);
+
+  // Return the profile with the token (excluding sensitive fields)
+  const { password: _, resetToken: __, resetTokenExpires: ___, ...safeProfile } = user;
+  
+  return res.json({
+    success: true,
+    userProfile: safeProfile,
+    sessionToken: token
+  });
+});
+
+app.post("/api/auth/register", authLimiter, (req, res) => {
+  const { fullName, whatsapp, username, email, password } = req.body;
+  if (!fullName || !whatsapp || !username || !password) {
+    return res.status(400).json({ error: "Mohon lengkapi seluruh data pendaftaran." });
+  }
+
+  const cleanUsername = username.toLowerCase().trim();
+  const newEmail = (email || `${cleanUsername}@kingsimilarity.com`).toLowerCase().trim();
+
+  const currentState = loadState();
+
+  // 1. Check if username is taken
+  const usernameTaken = currentState.customers.some(c => c.username && c.username.toLowerCase() === cleanUsername);
+  if (usernameTaken) {
+    return res.status(400).json({ error: "Pendaftaran Gagal! Username ini sudah digunakan." });
+  }
+
+  // 2. Check if email is taken
+  const emailTaken = currentState.customers.some(c => c.email && c.email.toLowerCase() === newEmail);
+  if (emailTaken) {
+    return res.status(400).json({ error: "Pendaftaran Gagal! Email ini sudah terdaftar." });
+  }
+
+  // Generate secure session token
+  const token = crypto.randomBytes(32).toString("hex");
+
+  const newCust = {
+    username: cleanUsername,
+    fullName,
+    email: newEmail,
+    whatsapp,
+    role: "Pelanggan",
+    kreditSisa: 0,
+    uploadHarianSisa: 20,
+    totalUploadHarianLimit: 20,
+    password,
+    sessionToken: token
+  };
+
+  currentState.customers.push(newCust);
+  saveState(currentState);
+
+  // Return safe profile
+  const { password: _, ...safeProfile } = newCust;
+
+  return res.json({
+    success: true,
+    userProfile: safeProfile,
+    sessionToken: token
+  });
+});
 
 app.post("/api/auth/forgot-password", async (req, res) => {
   const { email } = req.body;
@@ -915,13 +1152,19 @@ app.post("/api/auth/reset-password", (req, res) => {
 });
 
 app.post("/api/update-customers", (req, res) => {
+  const currentState = loadState();
+
+  // Verify Admin authorization
+  const authUser = getAuthorizedUser(req, currentState);
+  if (!authUser || authUser.role !== "Admin") {
+    return res.status(403).json({ error: "Akses ditolak. Hanya Administrator yang dapat mengubah data pelanggan." });
+  }
+
   const { customers: incomingCustomers } = req.body;
   if (!incomingCustomers || !Array.isArray(incomingCustomers)) {
     return res.status(400).json({ error: "customers array is required" });
   }
 
-  const currentState = loadState();
-  
   // Defensive deep merge to protect accounts and prevent any data loss
   const merged = [...currentState.customers];
 
@@ -946,14 +1189,21 @@ app.post("/api/update-customers", (req, res) => {
     }
   });
 
-  currentState.customers = merged;
+  currentState.customers = enforceAdminProfiles(merged);
   saveState(currentState);
   res.json({ success: true, updatedState: currentState });
 });
 
 app.post("/api/update-settings", (req, res) => {
-  const { adminAnnouncement, autoSimulationEnabled, extraTools, turnitinPrice, isUploadLocked, workingHours } = req.body;
   const currentState = loadState();
+
+  // Verify Admin authorization
+  const authUser = getAuthorizedUser(req, currentState);
+  if (!authUser || authUser.role !== "Admin") {
+    return res.status(403).json({ error: "Akses ditolak. Hanya Administrator yang dapat mengubah pengaturan sistem." });
+  }
+
+  const { adminAnnouncement, autoSimulationEnabled, extraTools, turnitinPrice, isUploadLocked, workingHours } = req.body;
 
   if (adminAnnouncement !== undefined) {
     currentState.adminAnnouncement = adminAnnouncement;
@@ -979,6 +1229,14 @@ app.post("/api/update-settings", (req, res) => {
 });
 
 app.post("/api/reset-demo", (req, res) => {
+  const currentState = loadState();
+
+  // Verify Admin authorization
+  const authUser = getAuthorizedUser(req, currentState);
+  if (!authUser || authUser.role !== "Admin") {
+    return res.status(403).json({ error: "Akses ditolak. Hanya Administrator yang dapat mereset data sistem." });
+  }
+
   const resetState = {
     files: DEFAULT_FILES,
     customers: DEFAULT_CUSTOMERS,
@@ -996,6 +1254,13 @@ app.post("/api/reset-demo", (req, res) => {
 
 app.post("/api/clear-files", (req, res) => {
   const currentState = loadState();
+
+  // Verify Admin authorization
+  const authUser = getAuthorizedUser(req, currentState);
+  if (!authUser || authUser.role !== "Admin") {
+    return res.status(403).json({ error: "Akses ditolak. Hanya Administrator yang dapat mengosongkan berkas." });
+  }
+
   currentState.files = [];
 
   saveState(currentState);
@@ -1024,6 +1289,14 @@ try {
 
 // AI Chatbot endpoint
 app.post("/api/chat", async (req, res) => {
+  const currentState = loadState();
+
+  // Verify authentication
+  const authUser = getAuthorizedUser(req, currentState);
+  if (!authUser) {
+    return res.status(401).json({ error: "Sesi Anda telah berakhir atau tidak valid. Silakan masuk kembali." });
+  }
+
   const { message, history } = req.body;
   if (!message) {
     return res.status(400).json({ error: "Message is required" });
