@@ -388,11 +388,22 @@ export default function App() {
       });
 
       if (!res.ok) {
-        const errJson = await res.json();
-        throw new Error(errJson.error || "Gagal melakukan paraphrase.");
+        let errStr = "Gagal melakukan paraphrase. Kode status: " + res.status;
+        try {
+          const errJson = await res.json();
+          if (errJson.error) errStr = errJson.error;
+        } catch (_) {
+          // If the server returned HTML (like a 401 or proxy error page), ignore the JSON parse error
+        }
+        throw new Error(errStr);
       }
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (_) {
+        throw new Error("Respon server tidak valid (Bukan JSON). Sesi mungkin telah berakhir.");
+      }
       if (data.success) {
         setBpParaphrasedText(data.paraphrasedText);
         setBpWordCount(data.wordCount);
