@@ -34,6 +34,7 @@ import {
   Crown,
   Lock,
   Eye,
+  EyeOff,
   Calendar,
   Check,
   Globe2,
@@ -187,6 +188,10 @@ export default function App() {
   const [registerUsername, setRegisterUsername] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [authError, setAuthError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resettingSystem, setResettingSystem] = useState(false);
 
   // Forgot password and reset password state variables
   const [forgotEmail, setForgotEmail] = useState("");
@@ -1709,13 +1714,19 @@ export default function App() {
                     </div>
                     <div className="relative">
                       <input
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         className="w-full text-slate-800 text-sm border border-slate-200 rounded-xl pl-4 pr-10 py-3 placeholder:text-slate-400 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs"
                         placeholder="Masukkan password"
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
                       />
-                      <Eye size={16} className="absolute right-3.5 top-3.5 text-slate-400" />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3.5 text-slate-400 hover:text-indigo-600 bg-transparent border-none cursor-pointer focus:outline-hidden"
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
                     </div>
                   </div>
 
@@ -1777,13 +1788,22 @@ export default function App() {
 
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-slate-500 block">PASSWORD UNTUK LOGIN</label>
-                    <input
-                      type="password"
-                      className="w-full text-slate-800 text-sm border border-slate-200 rounded-xl px-4 py-3 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs"
-                      placeholder="Buat password masuk Anda"
-                      value={registerPassword}
-                      onChange={(e) => setRegisterPassword(e.target.value)}
-                    />
+                    <div className="relative">
+                      <input
+                        type={showRegisterPassword ? "text" : "password"}
+                        className="w-full text-slate-800 text-sm border border-slate-200 rounded-xl pl-4 pr-10 py-3 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs"
+                        placeholder="Buat password masuk Anda"
+                        value={registerPassword}
+                        onChange={(e) => setRegisterPassword(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                        className="absolute right-3 top-3.5 text-slate-400 hover:text-indigo-600 bg-transparent border-none cursor-pointer focus:outline-hidden"
+                      >
+                        {showRegisterPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
                   </div>
 
                   <button
@@ -1960,20 +1980,72 @@ export default function App() {
               )}
 
               {/* Login/register switcher footer */}
-              <div className="text-center pt-3 border-t border-slate-100 text-xs">
+              <div className="text-center pt-3 border-t border-slate-100 text-xs space-y-3">
                 {currentView === "login" && (
-                  <p className="text-slate-500 font-sans">
-                    Belum punya akun?{" "}
-                    <button 
-                      onClick={() => {
-                        setAuthError("");
-                        setCurrentView("register");
-                      }}
-                      className="text-indigo-600 font-semibold hover:underline cursor-pointer"
-                    >
-                      Daftar gratis sekarang
-                    </button>
-                  </p>
+                  <>
+                    <p className="text-slate-500 font-sans">
+                      Belum punya akun?{" "}
+                      <button 
+                        onClick={() => {
+                          setAuthError("");
+                          setCurrentView("register");
+                        }}
+                        className="text-indigo-600 font-semibold hover:underline cursor-pointer"
+                      >
+                        Daftar gratis sekarang
+                      </button>
+                    </p>
+
+                    <div className="pt-2 border-t border-slate-100 text-center">
+                      {!showResetConfirm ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowResetConfirm(true)}
+                          className="text-[10px] text-slate-400 hover:text-indigo-600 transition underline cursor-pointer"
+                        >
+                          Bantuan: Atur Ulang Database Simulasi ke Default
+                        </button>
+                      ) : (
+                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100/80 space-y-2 text-center">
+                          <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
+                            Mengatur ulang akan menghapus semua data transaksi & berkas serta mengembalikan password akun Kak Melda (melda_katria) ke bawaan (@Melda2026).
+                          </p>
+                          <div className="flex gap-2 justify-center">
+                            <button
+                              type="button"
+                              disabled={resettingSystem}
+                              onClick={async () => {
+                                setResettingSystem(true);
+                                try {
+                                  const res = await fetch("/api/reset-demo", { method: "POST" });
+                                  if (res.ok) {
+                                    setAuthError("Sistem berhasil diatur ulang! Gunakan username 'melda_katria' dan password '@Melda2026' untuk masuk.");
+                                    setShowResetConfirm(false);
+                                  } else {
+                                    setAuthError("Gagal mengatur ulang database.");
+                                  }
+                                } catch (err) {
+                                  setAuthError("Gagal terhubung ke server.");
+                                } finally {
+                                  setResettingSystem(false);
+                                }
+                              }}
+                              className="bg-rose-500 hover:bg-rose-600 text-white font-bold px-2.5 py-1 rounded-lg text-[10px] cursor-pointer"
+                            >
+                              {resettingSystem ? "Memproses..." : "Ya, Reset Sistem"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowResetConfirm(false)}
+                              className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-2.5 py-1 rounded-lg text-[10px] cursor-pointer"
+                            >
+                              Batal
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
                 )}
                 {currentView === "register" && (
                   <p className="text-slate-500 font-sans">
