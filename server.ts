@@ -794,8 +794,8 @@ app.post("/api/bypassgpt/paraphrase", async (req, res) => {
     let responseText = "";
     let apiErrorMsg = "";
 
-    // Check if the API key is not configured or is the default placeholder dummy key
-    const isPlaceholderKey = !process.env.BYPASSGPT_API_KEY || apiKey === "api_key_6ca15173d42344b481731336a6b41d2b";
+    // Use the provided API key
+    const isPlaceholderKey = false;
 
     if (isPlaceholderKey) {
       usedFallback = true;
@@ -806,7 +806,7 @@ app.post("/api/bypassgpt/paraphrase", async (req, res) => {
           method: "POST",
           headers,
           body: JSON.stringify(payload),
-          signal: AbortSignal.timeout(2000) // Fast 2 second timeout
+          signal: AbortSignal.timeout(30000) // Increase timeout to 30s
         });
       } catch (e: any) {
         apiErrorMsg = e.message;
@@ -819,7 +819,7 @@ app.post("/api/bypassgpt/paraphrase", async (req, res) => {
             method: "POST",
             headers,
             body: JSON.stringify(payload),
-            signal: AbortSignal.timeout(2000) // Fast 2 second timeout
+            signal: AbortSignal.timeout(30000) // Increase timeout to 30s
           });
         } catch (e: any) {
           apiErrorMsg += " | " + e.message;

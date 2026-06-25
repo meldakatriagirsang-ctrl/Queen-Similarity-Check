@@ -2147,55 +2147,7 @@ export default function App() {
                       </button>
                     </p>
 
-                    <div className="pt-2 border-t border-slate-100 text-center">
-                      {!showResetConfirm ? (
-                        <button
-                          type="button"
-                          onClick={() => setShowResetConfirm(true)}
-                          className="text-[10px] text-slate-400 hover:text-indigo-600 transition underline cursor-pointer"
-                        >
-                          Bantuan: Atur Ulang Database Simulasi ke Default
-                        </button>
-                      ) : (
-                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100/80 space-y-2 text-center">
-                          <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
-                            Mengatur ulang akan menghapus semua data transaksi & berkas serta mengembalikan password akun Kak Melda (melda_katria) ke bawaan (@Melda2026).
-                          </p>
-                          <div className="flex gap-2 justify-center">
-                            <button
-                              type="button"
-                              disabled={resettingSystem}
-                              onClick={async () => {
-                                setResettingSystem(true);
-                                try {
-                                  const res = await fetch("/api/reset-demo", { method: "POST" });
-                                  if (res.ok) {
-                                    setAuthError("Sistem berhasil diatur ulang! Gunakan username 'melda_katria' dan password '@Melda2026' untuk masuk.");
-                                    setShowResetConfirm(false);
-                                  } else {
-                                    setAuthError("Gagal mengatur ulang database.");
-                                  }
-                                } catch (err) {
-                                  setAuthError("Gagal terhubung ke server.");
-                                } finally {
-                                  setResettingSystem(false);
-                                }
-                              }}
-                              className="bg-rose-500 hover:bg-rose-600 text-white font-bold px-2.5 py-1 rounded-lg text-[10px] cursor-pointer"
-                            >
-                              {resettingSystem ? "Memproses..." : "Ya, Reset Sistem"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setShowResetConfirm(false)}
-                              className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-2.5 py-1 rounded-lg text-[10px] cursor-pointer"
-                            >
-                              Batal
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+
                   </>
                 )}
                 {currentView === "register" && (
