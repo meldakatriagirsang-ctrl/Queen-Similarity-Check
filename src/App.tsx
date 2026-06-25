@@ -1977,24 +1977,22 @@ export default function App() {
               }
             ` }} />
           )}
-          {/* Cosmic Galaxy Backdrop styling with light blurs */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#0C152E]/50 via-[#040815] to-[#010206] z-0 pointer-events-none" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b08_1px,transparent_1px),linear-gradient(to_bottom,#1e293b08_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-0" />
-          <div className="absolute top-[5%] right-[10%] w-[45%] h-[40%] rounded-full bg-cyan-500/5 blur-[120px] pointer-events-none" />
-          <div className="absolute bottom-[10%] left-[5%] w-[45%] h-[40%] rounded-full bg-indigo-500/5 blur-[120px] pointer-events-none" />
+          {/* Simple clean light grid backdrop */}
+          <div className="absolute inset-0 bg-slate-50 z-0 pointer-events-none" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] bg-[size:24px_24px] opacity-60 pointer-events-none z-0" />
  
           {/* 1. TOP NAVBAR HEADER (Unified wide across screen) */}
-          <header className="relative z-20 w-full bg-[#0B0F19]/45 backdrop-blur-lg border-b border-indigo-950/40 h-16 flex items-center justify-between px-6 shrink-0 shadow-lg shadow-indigo-950/10">
+          <header className="relative z-20 w-full bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 shrink-0 shadow-xs">
             <div className="flex items-center gap-3">
               <QueenLogo size={36} />
             </div>
             <div className="flex items-center gap-4 text-xs font-semibold">
-              <span className="text-slate-300 hidden sm:inline">
-                Halo, <span className="text-indigo-400 font-bold">{userProfile.fullName}</span>
+              <span className="text-slate-600 hidden sm:inline">
+                Halo, <span className="text-indigo-600 font-bold">{userProfile.fullName}</span>
               </span>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/25 text-red-400 transition cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 transition cursor-pointer font-bold"
               >
                 <LogOut size={13} />
                 <span>Logout</span>
@@ -2006,7 +2004,7 @@ export default function App() {
           <div className="relative z-10 flex flex-col lg:flex-row flex-1">
             
             {/* Left Sidebar Menu */}
-            <aside className="w-full lg:w-64 bg-[#080C16]/50 backdrop-blur-lg text-slate-300 shrink-0 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-indigo-950/40">
+            <aside className="w-full lg:w-64 bg-white text-slate-600 shrink-0 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200 shadow-2xs">
               <div className="flex-1 flex flex-col">
                 <nav className="p-4 space-y-1.5 font-sans">
                   
@@ -2015,11 +2013,11 @@ export default function App() {
                     onClick={() => setDashboardTab("list-file")}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition duration-150 cursor-pointer ${
                       dashboardTab === "list-file"
-                        ? "bg-[#1E3A8A]/50 text-white border-l-4 border-blue-400 shadow-sm shadow-blue-500/10"
-                        : "text-slate-400 hover:bg-[#111827]/60 hover:text-white"
+                        ? "bg-indigo-55 bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600 shadow-2xs font-bold"
+                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                     }`}
                   >
-                    <FileText size={16} className={dashboardTab === "list-file" ? "text-blue-400" : "text-slate-400"} /> 
+                    <FileText size={16} className={dashboardTab === "list-file" ? "text-indigo-600" : "text-slate-400"} /> 
                     <span>List File</span>
                   </button>
 
@@ -2028,11 +2026,11 @@ export default function App() {
                     onClick={() => setDashboardTab("ai-chatbot")}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition duration-150 cursor-pointer ${
                       dashboardTab === "ai-chatbot"
-                        ? "bg-[#1E3A8A]/50 text-white border-l-4 border-blue-400 shadow-sm shadow-blue-500/10"
-                        : "text-slate-400 hover:bg-[#111827]/60 hover:text-white"
+                        ? "bg-indigo-55 bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600 shadow-2xs font-bold"
+                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                     }`}
                   >
-                    <Sparkles size={16} className={dashboardTab === "ai-chatbot" ? "text-blue-400" : "text-slate-400"} /> 
+                    <Sparkles size={16} className={dashboardTab === "ai-chatbot" ? "text-indigo-600" : "text-slate-400"} /> 
                     <span>AI Chatbot</span>
                   </button>
 
@@ -2041,11 +2039,11 @@ export default function App() {
                     onClick={() => setDashboardTab("profil")}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition duration-150 cursor-pointer ${
                       dashboardTab === "profil"
-                        ? "bg-[#1E3A8A]/50 text-white border-l-4 border-blue-400 shadow-sm shadow-blue-500/10"
-                        : "text-slate-400 hover:bg-[#111827]/60 hover:text-white"
+                        ? "bg-indigo-55 bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600 shadow-2xs font-bold"
+                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                     }`}
                   >
-                    <User size={16} className={dashboardTab === "profil" ? "text-blue-400" : "text-slate-400"} /> 
+                    <User size={16} className={dashboardTab === "profil" ? "text-indigo-600" : "text-slate-400"} /> 
                     <span>Profil</span>
                   </button>
 
@@ -2055,11 +2053,11 @@ export default function App() {
                       onClick={() => setDashboardTab("extra-services")}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition duration-150 cursor-pointer ${
                         dashboardTab === "extra-services"
-                          ? "bg-[#1E3A8A]/50 text-white border-l-4 border-blue-400 shadow-sm shadow-blue-500/10"
-                          : "text-slate-400 hover:bg-[#111827]/60 hover:text-white"
+                          ? "bg-indigo-55 bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600 shadow-2xs font-bold"
+                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
-                      <Award size={16} className={dashboardTab === "extra-services" ? "text-amber-400" : "text-amber-500/75"} /> 
+                      <Award size={16} className={dashboardTab === "extra-services" ? "text-amber-600" : "text-slate-400"} /> 
                       <span>Layanan Tambahan</span>
                     </button>
                   )}
@@ -2070,11 +2068,11 @@ export default function App() {
                       onClick={() => setDashboardTab("workspace-admin")}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold tracking-wide transition duration-150 cursor-pointer ${
                         dashboardTab === "workspace-admin"
-                          ? "bg-rose-950/50 text-rose-200 border-l-4 border-rose-500 shadow-md shadow-rose-900/10"
-                          : "text-slate-400 hover:bg-[#111827]/60 hover:text-white"
+                          ? "bg-rose-50 text-rose-600 border-l-4 border-rose-500 shadow-xs"
+                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                       }`}
                     >
-                      <LockKeyhole size={16} className="text-rose-400" /> 
+                      <LockKeyhole size={16} className="text-rose-500" /> 
                       <span>Workspace Admin 🔑</span>
                     </button>
                   )}
@@ -2082,21 +2080,21 @@ export default function App() {
                 </nav>
               </div>
 
-              {/* Sidebar bottom indicator labels & Status Legend - Styled elegantly like screenshot! */}
-              <div className="p-5 border-t border-indigo-950/70 bg-[#070B18]/50">
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-3">Keterangan Status</p>
+              {/* Sidebar bottom indicator labels & Status Legend - Styled elegantly! */}
+              <div className="p-5 border-t border-slate-200 bg-slate-50">
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-3">Keterangan Status</p>
                 <div className="space-y-2 text-xs">
-                  <div className="flex items-center gap-2 text-slate-300">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] flex shrink-0"></span>
-                    <span className="font-semibold text-emerald-400">Selesai</span>
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)] flex shrink-0"></span>
+                    <span className="font-semibold text-slate-750">Selesai</span>
                   </div>
-                  <div className="flex items-center gap-2 text-slate-300">
-                    <span className="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.7)] flex shrink-0 animate-pulse"></span>
-                    <span className="font-semibold text-amber-400">Memproses</span>
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <span className="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.3)] flex shrink-0 animate-pulse"></span>
+                    <span className="font-semibold text-slate-750">Memproses</span>
                   </div>
-                  <div className="flex items-center gap-2 text-slate-300">
-                    <span className="h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.7)] flex shrink-0"></span>
-                    <span className="font-semibold text-red-400">Gagal</span>
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <span className="h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.3)] flex shrink-0"></span>
+                    <span className="font-semibold text-slate-750">Gagal</span>
                   </div>
                 </div>
               </div>
@@ -2106,30 +2104,30 @@ export default function App() {
             <main className="flex-1 p-6 md:p-8 space-y-6 overflow-x-hidden bg-transparent">
             
               {/* 1. PESAN DARI ADMIN WIDGET (Frosted card with glowing cyan accents) */}
-              <section className="bg-[#0A1128]/70 backdrop-blur-md border border-[#00E5FF]/20 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/5 rounded-full blur-xl pointer-events-none" />
-                <div className="flex items-center gap-2.5 mb-4 text-[#00E5FF]">
+              <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl pointer-events-none" />
+                <div className="flex items-center gap-2.5 mb-4 text-indigo-600">
                   <Bell size={16} className="animate-bounce" />
                   <span className="text-[11px] font-bold tracking-wider uppercase font-sans">Pesan dari Admin</span>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
                   <div className="md:col-span-8 space-y-3">
-                    <h4 className="font-bold text-slate-200 text-xs">𝗣𝗲𝘀𝗮𝗻 𝗣𝗲𝗻𝘁𝗶𝗻𝗴 📄</h4>
-                    <p className="text-xs text-slate-350 leading-relaxed font-sans font-medium whitespace-pre-wrap">
+                    <h4 className="font-bold text-slate-800 text-xs">𝗣𝗲𝘀𝗮𝗻 𝗣𝗲𝗻𝘁𝗶𝗻𝗴 📄</h4>
+                    <p className="text-xs text-slate-600 leading-relaxed font-sans font-normal whitespace-pre-wrap">
                       {adminAnnouncement}
                     </p>
                   </div>
                   
-                  <div className="md:col-span-4 bg-black/30 p-4 rounded-xl border border-indigo-950/40 space-y-3.5 flex flex-col justify-between h-full">
+                  <div className="md:col-span-4 bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3.5 flex flex-col justify-between h-full">
                     <div className="space-y-2 text-[11px]">
                       <div>
                         <span className="text-slate-400 font-bold block mb-0.5">JAM KERJA ⏰</span>
-                        <span className="text-slate-200 font-semibold font-mono text-[11px]">{workingHours}</span>
+                        <span className="text-slate-700 font-semibold font-mono text-[11px]">{workingHours}</span>
                       </div>
                       <div>
                         <span className="text-slate-400 font-bold block mb-0.5">STATUS PORTAL 💡</span>
-                        <span className={isUploadLocked ? "text-amber-400 font-bold animate-pulse text-[11px]" : "text-[#00E5FF] font-semibold text-[11px]"}>
+                        <span className={isUploadLocked ? "text-amber-600 font-bold animate-pulse text-[11px]" : "text-emerald-600 font-semibold text-[11px]"}>
                           {isUploadLocked ? "Tutup Sementara (Upload Locked)" : "Queen Similarity Check Aktif"}
                         </span>
                       </div>
@@ -2138,7 +2136,7 @@ export default function App() {
                       href="https://wa.me/6282261858077"
                       target="_blank"
                       rel="noreferrer"
-                      className="w-full py-2.5 bg-gradient-to-r from-teal-400 via-[#00E5FF] to-cyan-400 hover:from-teal-500 hover:to-cyan-500 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-2 duration-150 shadow-md shadow-[#00E5FF]/10 cursor-pointer text-center transition-all"
+                      className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 duration-150 shadow-sm cursor-pointer text-center transition-all"
                     >
                       🚀 Group WhatsApp
                     </a>
@@ -2146,36 +2144,36 @@ export default function App() {
                 </div>
               </section>
 
-              {/* 2. STATISTIK AKUN HORIZONTAL GRIDS (Matching screenshot dark bars!) */}
+              {/* 2. STATISTIK AKUN HORIZONTAL GRIDS */}
               <section className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 
                 {/* Kredit Tersisa Card */}
-                <div className="bg-[#090D1A]/50 backdrop-blur-md border border-indigo-500/10 rounded-2xl p-5 text-center shadow-lg hover:border-indigo-500/30 transition duration-200">
-                  <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest block mb-2 font-mono">
+                <div className="bg-white border border-slate-200 rounded-2xl p-5 text-center shadow-xs hover:border-indigo-250 transition duration-200">
+                  <span className="text-[10px] text-indigo-600 font-bold uppercase tracking-widest block mb-2 font-mono">
                     STATUS PAKET AKUN
                   </span>
-                  <div className="text-4xl font-extrabold text-white tracking-tight font-mono my-2 drop-shadow-[0_0_12px_rgba(129,140,248,0.2)]">
+                  <div className="text-4xl font-extrabold text-slate-850 text-slate-800 tracking-tight font-mono my-2">
                     {userProfile.kreditSisa}
                   </div>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-sans">
+                  <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider font-sans">
                     KREDIT PELANGGAN TERSISA
                   </span>
                 </div>
 
                 {/* Upload Harian Card */}
-                <div className="bg-[#090D1A]/50 backdrop-blur-md border border-indigo-500/10 rounded-2xl p-5 text-center shadow-lg hover:border-indigo-500/30 transition duration-200 flex flex-col justify-between">
+                <div className="bg-white border border-slate-200 rounded-2xl p-5 text-center shadow-xs hover:border-indigo-250 transition duration-200 flex flex-col justify-between">
                   <div>
-                    <span className="text-[10px] text-cyan-405 text-cyan-400 font-bold uppercase tracking-widest block mb-2 font-mono">
+                    <span className="text-[10px] text-indigo-600 font-bold uppercase tracking-widest block mb-2 font-mono">
                       JUMLAH UPLOAD HARIAN
                     </span>
-                    <div className="text-4xl font-extrabold text-white tracking-tight font-mono my-2 drop-shadow-[0_0_12px_rgba(6,182,212,0.2)]">
+                    <div className="text-4xl font-extrabold text-slate-850 text-slate-800 tracking-tight font-mono my-2">
                       {userProfile.uploadHarianSisa}
                     </div>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-sans block">
+                    <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider font-sans block">
                       DAILY UPLOAD TERSISA
                     </span>
                   </div>
-                  <p className="text-[9px] text-slate-500 italic mt-3 font-medium font-sans">
+                  <p className="text-[9px] text-slate-400 italic mt-3 font-normal font-sans">
                     Jatah upload harian Anda akan reset otomatis pada pukul 00:00 (Asia/Makassar).
                   </p>
                 </div>
@@ -2184,10 +2182,10 @@ export default function App() {
 
               {/* 3. WELCOME TITLE AREA */}
               <div className="pt-4 pb-1">
-                <h2 className="text-2xl font-extrabold text-white tracking-tight leading-none">
+                <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight leading-none">
                   Selamat Datang, {userProfile.fullName}!
                 </h2>
-                <p className="text-xs text-slate-400 mt-2 font-medium">
+                <p className="text-xs text-slate-500 mt-2 font-medium">
                   Kelola file plagiarisme Anda di sini
                 </p>
               </div>
@@ -2196,27 +2194,27 @@ export default function App() {
               <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 
                 {/* Total Dokumen */}
-                <div className="bg-[#0A0F1D]/55 backdrop-blur-md border border-slate-900 rounded-2xl p-5 shadow-inner flex flex-col justify-between h-24 hover:border-slate-800/80 transition cursor-default">
-                  <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">TOTAL DOKUMEN</span>
-                  <span className="text-2xl font-black text-white font-mono">{totalCount}</span>
+                <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs flex flex-col justify-between h-24 hover:border-slate-300 transition cursor-default">
+                  <span className="text-slate-500 text-[10px] font-bold uppercase tracking-wider block">TOTAL DOKUMEN</span>
+                  <span className="text-2xl font-black text-slate-800 font-mono">{totalCount}</span>
                 </div>
 
                 {/* Selesai */}
-                <div className="bg-[#0A0F1D]/55 backdrop-blur-md border border-slate-900 rounded-2xl p-5 shadow-inner flex flex-col justify-between h-24 hover:border-slate-800/80 transition cursor-default">
-                  <span className="text-emerald-400 text-[10px] font-bold uppercase tracking-wider block">SELESAI</span>
-                  <span className="text-2xl font-black text-emerald-400 font-mono">{selesaiCount}</span>
+                <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs flex flex-col justify-between h-24 hover:border-slate-300 transition cursor-default">
+                  <span className="text-emerald-600 text-[10px] font-bold uppercase tracking-wider block">SELESAI</span>
+                  <span className="text-2xl font-black text-emerald-600 font-mono">{selesaiCount}</span>
                 </div>
 
                 {/* Gagal */}
-                <div className="bg-[#0A0F1D]/55 backdrop-blur-md border border-slate-900 rounded-2xl p-5 shadow-inner flex flex-col justify-between h-24 hover:border-slate-800/80 transition cursor-default">
-                  <span className="text-rose-400 text-[10px] font-bold uppercase tracking-wider block">GAGAL</span>
-                  <span className="text-2xl font-black text-rose-400 font-mono">{gagalCount}</span>
+                <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs flex flex-col justify-between h-24 hover:border-slate-300 transition cursor-default">
+                  <span className="text-rose-600 text-[10px] font-bold uppercase tracking-wider block">GAGAL</span>
+                  <span className="text-2xl font-black text-rose-600 font-mono">{gagalCount}</span>
                 </div>
 
                 {/* Memproses */}
-                <div className="bg-[#0A0F1D]/55 backdrop-blur-md border border-slate-900 rounded-2xl p-5 shadow-inner flex flex-col justify-between h-24 hover:border-slate-800/80 transition cursor-default">
-                  <span className="text-amber-400 text-[10px] font-bold uppercase tracking-wider block">MEMPROSES</span>
-                  <span className="text-2xl font-black text-amber-500 font-mono">{memprosesCount}</span>
+                <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-2xs flex flex-col justify-between h-24 hover:border-slate-300 transition cursor-default">
+                  <span className="text-amber-600 text-[10px] font-bold uppercase tracking-wider block">MEMPROSES</span>
+                  <span className="text-2xl font-black text-amber-600 font-mono">{memprosesCount}</span>
                 </div>
 
               </section>
@@ -2225,25 +2223,25 @@ export default function App() {
 
               {/* TAB PANEL 1: DAFTAR FILE (FILE LIST) */}
               {dashboardTab === "list-file" && (
-              <div className="bg-[#0B0F19]/60 backdrop-blur-md rounded-2xl border border-indigo-950/60 shadow-xl flex flex-col min-h-[320px] overflow-hidden">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col min-h-[320px] overflow-hidden">
                 
                 {/* Search & Actions Area top */}
                 {isUploadLocked && userProfile.role !== "Admin" && (
-                  <div className="mx-6 mt-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-200 text-xs flex items-center gap-3">
+                  <div className="mx-6 mt-6 p-4 bg-amber-50 border border-amber-100 rounded-xl text-amber-800 text-xs flex items-center gap-3">
                     <span className="text-lg">⚠️</span>
                     <div>
-                      <strong className="block text-amber-300">Hubungi Admin: Layanan Upload Dikunci</strong>
+                      <strong className="block text-amber-900">Hubungi Admin: Layanan Upload Dikunci</strong>
                       <span>Layanan pengunggahan berkas baru sedang dinonaktifkan sementara waktu oleh Admin Kak Melda. Harap tunggu hingga jam operasional aktif kembali atau hubungi WhatsApp Admin.</span>
                     </div>
                   </div>
                 )}
 
-                <div className="p-6 border-b border-indigo-950/65 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                <div className="p-6 border-b border-slate-250 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                   <div>
-                    <h3 className="font-bold text-white text-sm">
-                      Daftar File <span className="text-xs font-normal text-slate-400 ml-2">(Sudah Anda upload)</span>
+                    <h3 className="font-bold text-slate-800 text-sm font-sans">
+                      Daftar File <span className="text-xs font-normal text-slate-500 ml-2">(Sudah Anda upload)</span>
                     </h3>
-                    <p className="text-xs text-slate-400 leading-tight mt-1">
+                    <p className="text-xs text-slate-500 leading-tight mt-1 font-sans">
                       Pantau progress dan unduh laporan keaslian Turnitin no-repository di sini.
                     </p>
                   </div>
@@ -2255,7 +2253,7 @@ export default function App() {
                       <input 
                         type="text" 
                         placeholder="Cari file..." 
-                        className="pl-10 pr-4 py-2 bg-[#0F172A]/80 border border-indigo-950 rounded-lg text-xs w-full sm:w-48 focus:ring-2 focus:ring-indigo-500 text-slate-100 placeholder-slate-500"
+                        className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs w-full sm:w-48 focus:ring-2 focus:ring-indigo-500 text-slate-800 placeholder-slate-400"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                       />
@@ -2284,17 +2282,17 @@ export default function App() {
 
                 {/* Sub-bar for development helpers for consistency */}
                 {userProfile.role === "Admin" && (
-                  <div className="px-6 py-2.5 bg-[#080C16]/60 border-b border-indigo-950/40 flex items-center justify-end gap-2 text-xs">
+                  <div className="px-6 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-end gap-2 text-xs">
                     <button
                       onClick={handleResetDemoData}
-                      className="text-[10px] font-sans text-indigo-400 hover:text-indigo-300 font-bold bg-indigo-950/40 border border-indigo-500/10 px-2.5 py-1.5 rounded transition duration-150 cursor-pointer"
+                      className="text-[10px] font-sans text-indigo-600 hover:text-indigo-800 font-bold bg-white border border-slate-200 px-2.5 py-1.5 rounded transition duration-150 cursor-pointer"
                     >
                       ⚙️ Reset Demo data
                     </button>
                     {files.length > 0 && (
                       <button
                         onClick={handleClearAllFiles}
-                        className="text-[10px] font-sans text-rose-400 hover:text-rose-300 font-bold bg-rose-950/40 border border-rose-500/10 px-2.5 py-1.5 rounded transition duration-150 cursor-pointer"
+                        className="text-[10px] font-sans text-rose-600 hover:text-rose-800 font-bold bg-white border border-slate-200 px-2.5 py-1.5 rounded transition duration-150 cursor-pointer"
                       >
                         Hapus Semua
                       </button>
@@ -2307,12 +2305,12 @@ export default function App() {
                   {filteredFiles.length === 0 ? (
                     // ------------------ EMPTY STATE VIEW ------------------
                     <div className="flex-1 flex flex-col items-center justify-center text-center p-12">
-                      <div className="h-20 w-20 bg-indigo-950/30 rounded-full flex items-center justify-center mb-4 border border-indigo-950/40">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-indigo-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div className="h-20 w-20 bg-slate-100 rounded-full flex items-center justify-center mb-4 border border-slate-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                         </svg>
                       </div>
-                      <p className="text-slate-400 font-medium mb-1">Belum ada file yang diupload</p>
+                      <p className="text-slate-500 font-medium mb-1">Belum ada file yang diupload</p>
                       <button 
                         onClick={() => {
                           if (isUploadLocked && userProfile.role !== "Admin") {
@@ -2321,17 +2319,17 @@ export default function App() {
                           }
                           setIsUploadOpen(true);
                         }}
-                        className="text-indigo-400 text-sm font-bold underline hover:text-indigo-300"
+                        className="text-indigo-600 text-sm font-bold underline hover:text-indigo-800"
                       >
                         Upload File Pertama
                       </button>
                     </div>
                   ) : (
                     // Regular listing list
-                    <table className="w-full text-left text-xs whitespace-nowrap overflow-x-auto divide-y divide-indigo-950/60">
+                    <table className="w-full text-left text-xs whitespace-nowrap overflow-x-auto divide-y divide-slate-200">
                       
                       {/* Table table layout */}
-                      <thead className="bg-[#080C16]/80 text-slate-400 text-[10px] tracking-wider uppercase font-extrabold font-mono border-b border-indigo-950/60">
+                      <thead className="bg-slate-50 text-slate-500 text-[10px] tracking-wider uppercase font-bold font-mono border-b border-slate-200">
                         <tr>
                           <th className="px-6 py-4">ID FILE</th>
                           <th className="px-6 py-4">JUDUL & PERNYATAAN</th>
@@ -2342,63 +2340,63 @@ export default function App() {
                         </tr>
                       </thead>
 
-                      <tbody className="divide-y divide-indigo-950/40 text-slate-300">
+                      <tbody className="divide-y divide-slate-100 text-slate-700">
                         {filteredFiles.map((file) => {
                           const progress = processingProgress[file.id] || 0;
                           
                           return (
-                            <tr key={file.id} className="hover:bg-[#1E3A8A]/10 transition duration-150">
+                            <tr key={file.id} className="hover:bg-slate-50 transition duration-150 border-b border-slate-100">
                               
                               {/* File ID column */}
-                              <td className="px-6 py-4 font-mono text-slate-400 font-semibold">{file.id}</td>
+                              <td className="px-6 py-4 font-mono text-slate-500 font-semibold">{file.id}</td>
                               
                               {/* Title / filename info */}
                               <td className="px-6 py-4 max-w-xs sm:max-w-md truncate">
-                                <span className="font-semibold text-slate-100 block truncate font-sans" title={file.title}>
+                                <span className="font-semibold text-slate-800 block truncate font-sans text-xs" title={file.title}>
                                   {file.title}
                                 </span>
-                                <span className="text-[10px] text-slate-400 block truncate font-mono mt-0.5 animate-pulse" title={file.filename}>
+                                <span className="text-[10px] text-slate-500 block truncate font-mono mt-0.5" title={file.filename}>
                                   📂 {file.filename}
                                 </span>
                                 <div className="flex flex-wrap gap-1 mt-1.5">
-                                  <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full ${file.checkType === "Turnitin-AI" ? "bg-amber-500/10 text-amber-300 border border-amber-500/20" : "bg-blue-500/10 text-blue-300 border border-blue-500/20"}`}>
+                                  <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full ${file.checkType === "Turnitin-AI" ? "bg-amber-50 text-amber-700 border border-amber-200" : "bg-indigo-50 text-indigo-700 border border-indigo-200"}`}>
                                     {file.checkType === "Turnitin-AI" ? "🔬 Turnitin AI Check" : "📊 Similarity Check"}
                                   </span>
                                   {file.filters?.excludeBibliography && (
-                                    <span className="bg-[#0A0F1D]/60 text-slate-400 border border-indigo-950 px-1.5 py-0.5 rounded text-[8px] font-bold">Exclude Bibliography</span>
+                                    <span className="bg-slate-50 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded text-[8px] font-bold">Exclude Bibliography</span>
                                   )}
                                   {file.filters?.excludeQuotes && (
-                                    <span className="bg-[#0A0F1D]/60 text-slate-400 border border-indigo-950 px-1.5 py-0.5 rounded text-[8px] font-bold">Exclude Quotes</span>
+                                    <span className="bg-slate-50 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded text-[8px] font-bold">Exclude Quotes</span>
                                   )}
                                   {file.filters?.excludeSmallSources && (
-                                    <span className="bg-[#0A0F1D]/60 text-slate-400 border border-indigo-950 px-1.5 py-0.5 rounded text-[8px] font-bold">Exclude Small Sources</span>
+                                    <span className="bg-slate-50 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded text-[8px] font-bold">Exclude Small Sources</span>
                                   )}
                                 </div>
                               </td>
 
                               {/* Upload Date */}
-                              <td className="px-6 py-4 text-slate-300 font-medium">{file.uploadDate}</td>
+                              <td className="px-6 py-4 text-slate-600 font-medium">{file.uploadDate}</td>
 
                               {/* File Size */}
-                              <td className="px-6 py-4 font-mono text-slate-400">{file.fileSize}</td>
+                              <td className="px-6 py-4 font-mono text-slate-500">{file.fileSize}</td>
 
                               {/* Document statuses columns */}
                               <td className="px-6 py-4">
                                 <div className="flex flex-col items-center justify-center">
                                   {file.status === "Selesai" && (
-                                    <span className="px-2.5 py-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-1 shadow-2xs font-sans">
+                                    <span className="px-2.5 py-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full flex items-center gap-1 shadow-2xs font-sans">
                                       <CheckCircle size={11} /> Selesai
                                     </span>
                                   )}
                                   
                                   {file.status === "Memproses" && (
-                                    <span className="px-2.5 py-1 text-[10px] font-semibold text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-full flex items-center gap-1 animate-pulse font-sans">
+                                    <span className="px-2.5 py-1 text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-full flex items-center gap-1 animate-pulse font-sans">
                                       <RefreshCw size={10} className="animate-spin" /> Memproses
                                     </span>
                                   )}
 
                                   {file.status === "Gagal" && (
-                                    <span className="px-2.5 py-1 text-[10px] font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-full flex items-center gap-1 font-sans">
+                                    <span className="px-2.5 py-1 text-[10px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-full flex items-center gap-1 font-sans">
                                       <AlertCircle size={11} /> Gagal
                                     </span>
                                   )}
@@ -2411,7 +2409,7 @@ export default function App() {
                                   <div className="flex items-center justify-end gap-2">
                                     <div className="text-right mr-2 hidden sm:block">
                                       <span className="text-[9px] text-slate-400 block font-display leading-none">Turnitin Scan</span>
-                                      <span className="font-mono font-bold text-xs text-rose-450 text-[#FF4560]">
+                                      <span className="font-mono font-bold text-xs text-rose-600">
                                         {file.similarityPercent}% Similarity
                                       </span>
                                     </div>
@@ -2430,7 +2428,7 @@ export default function App() {
                                 ) : (
                                   <button
                                     onClick={() => alert(`Informasi Gagal:\n\n${file.feedback || "Dokumen rusak, hubungi admin."}`)}
-                                    className="text-slate-400 hover:text-white text-[11px] font-medium border border-slate-800 px-2.5 py-1.5 rounded-lg hover:bg-slate-900 cursor-pointer transition duration-150"
+                                    className="text-slate-600 hover:text-slate-900 text-[11px] font-medium border border-slate-200 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer transition duration-150"
                                   >
                                     Cek Detail Error
                                   </button>
@@ -2742,31 +2740,31 @@ export default function App() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                   
                   {/* Left Column: Customers & Balance Directory Table (col-span-7) */}
-                  <div className={`col-span-12 lg:col-span-12 ${adminSettingsTab === "bypassgpt" ? "xl:col-span-4" : "xl:col-span-7"} bg-[#0B0F19]/60 border border-indigo-950/60 rounded-2xl p-5 shadow-lg space-y-4 transition-all duration-300`}>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-indigo-950/40 pb-3 gap-2">
+                  <div className={`col-span-12 lg:col-span-12 ${adminSettingsTab === "bypassgpt" ? "xl:col-span-4" : "xl:col-span-7"} bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 transition-all duration-300`}>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
                       <div>
-                        <h4 className="font-bold text-white text-xs uppercase tracking-wider">👥 Direktori & Saldo Kredit Pelanggan ({filteredAndSortedCustomers.length})</h4>
-                        <p className="text-[10px] text-slate-400 mt-0.5">Kelola verifikasi saldo langsung dari satu interface basis data.</p>
+                        <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">👥 Direktori & Saldo Kredit Pelanggan ({filteredAndSortedCustomers.length})</h4>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Kelola verifikasi saldo langsung dari satu interface basis data.</p>
                       </div>
                     </div>
 
                     {/* Compact Filter Tool bar */}
-                    <div className="flex flex-col sm:flex-row items-center gap-2 bg-[#070B18]/60 p-2 rounded-xl border border-indigo-950/55">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
                       <div className="relative flex-1 w-full">
                         <input
                           type="text"
                           placeholder="Cari pelanggan berdasarkan nama, email, username..."
                           value={customerSearchQuery}
                           onChange={(e) => setCustomerSearchQuery(e.target.value)}
-                          className="w-full px-3 py-1.5 text-xs text-slate-200 bg-transparent border-none focus:outline-none font-sans"
+                          className="w-full px-3 py-1.5 text-xs text-slate-800 bg-transparent border-none focus:outline-none font-sans"
                         />
                       </div>
-                      <div className="flex items-center gap-1.5 w-full sm:w-auto shrink-0 border-t sm:border-t-0 sm:border-l border-indigo-950/80 pt-2 sm:pt-0 pl-0 sm:pl-3">
-                        <span className="text-[10px] text-slate-400 font-bold shrink-0">Urutkan:</span>
+                      <div className="flex items-center gap-1.5 w-full sm:w-auto shrink-0 border-t sm:border-t-0 sm:border-l border-slate-200 pt-2 sm:pt-0 pl-0 sm:pl-3">
+                        <span className="text-[10px] text-slate-500 font-bold shrink-0">Urutkan:</span>
                         <select
                           value={customerSortOption}
                           onChange={(e) => setCustomerSortOption(e.target.value)}
-                          className="text-xs text-slate-300 bg-[#0F172A]/85 border border-indigo-950 rounded-lg px-2 py-1 focus:outline-none cursor-pointer w-full font-sans"
+                          className="text-xs text-slate-700 bg-white border border-slate-250 rounded-lg px-2 py-1 focus:outline-none cursor-pointer w-full font-sans"
                         >
                           <option value="name-asc">Nama (A-Z)</option>
                           <option value="name-desc">Nama (Z-A)</option>
@@ -2782,31 +2780,31 @@ export default function App() {
                       {filteredAndSortedCustomers.length === 0 ? (
                         <div className="text-center py-10 font-sans text-xs text-slate-500">Tidak ada pelanggan ditemukan.</div>
                       ) : (
-                        <table className="w-full text-xs text-slate-300 border-collapse">
+                        <table className="w-full text-xs text-slate-600 border-collapse">
                           <thead>
-                            <tr className="border-b border-indigo-950/60 text-[9px] text-slate-400 font-bold uppercase tracking-wider font-mono">
+                            <tr className="border-b border-slate-200 text-[9px] text-slate-500 font-bold uppercase tracking-wider font-mono">
                               <th className="py-2 text-left">PROFIL PELANGGAN</th>
                               <th className="py-2 text-center">SISA KREDIT</th>
                               <th className="py-2 text-right">TINDAKAN SALDO</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-indigo-950/30">
+                          <tbody className="divide-y divide-slate-100">
                             {filteredAndSortedCustomers.map(cust => {
                               const custFiles = files.filter(f => f.ownerEmail === cust.email);
                               const inputId = `credit-input-${cust.email.replace(/[@.]/g, "-")}`;
                               return (
-                                <tr key={cust.email} className="hover:bg-indigo-950/15 duration-75">
+                                <tr key={cust.email} className="hover:bg-slate-50 duration-75 border-b border-slate-100">
                                   <td className="py-2.5 pr-2">
-                                    <div className="font-semibold text-slate-100 text-xs flex items-center gap-1">
+                                    <div className="font-semibold text-slate-800 text-xs flex items-center gap-1">
                                       {cust.fullName}
                                       {cust.role === "Admin" && (
-                                        <span className="text-[8px] text-rose-400 font-bold bg-rose-500/10 px-1 py-0.2 rounded font-mono">ADMIN</span>
+                                        <span className="text-[8px] text-rose-600 font-bold bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded font-mono">ADMIN</span>
                                       )}
                                     </div>
-                                    <div className="text-[10px] text-slate-400 mt-0.5">{cust.email}</div>
-                                    <div className="text-[9px] text-slate-550 font-mono mt-0.5">WA: {cust.whatsapp} • {custFiles.length} file</div>
+                                    <div className="text-[10px] text-slate-500 mt-0.5">{cust.email}</div>
+                                    <div className="text-[9px] text-slate-400 font-mono mt-0.5">WA: {cust.whatsapp} • {custFiles.length} file</div>
                                   </td>
-                                  <td className="py-2.5 text-center font-mono font-bold text-indigo-400 text-xs">
+                                  <td className="py-2.5 text-center font-mono font-bold text-indigo-650 text-xs">
                                     {cust.kreditSisa} Cek
                                   </td>
                                   <td className="py-2.5 text-right">
@@ -2825,7 +2823,7 @@ export default function App() {
                                             setUserProfile(prev => ({ ...prev, kreditSisa: Math.max(0, prev.kreditSisa - 1) }));
                                           }
                                         }}
-                                        className="h-6 w-6 rounded bg-slate-800 hover:bg-rose-600 hover:text-white border border-indigo-950 text-[10px] font-bold text-rose-400 flex items-center justify-center cursor-pointer font-mono duration-100"
+                                        className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 border border-rose-200 text-[10px] font-bold text-rose-600 flex items-center justify-center cursor-pointer font-mono duration-100 transition"
                                         title="-1 Cek"
                                       >
                                         -1
@@ -2836,7 +2834,7 @@ export default function App() {
                                         type="number"
                                         min="0"
                                         defaultValue={cust.kreditSisa}
-                                        className="w-11 px-1 py-0.5 text-center font-bold rounded bg-[#090D1A] border border-indigo-950 text-white text-xs focus:ring-1 focus:ring-indigo-500 font-mono h-6 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                        className="w-11 px-1 py-0.5 text-center font-bold rounded bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:ring-1 focus:ring-indigo-500 font-mono h-6 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                         onBlur={(e) => {
                                           const amt = parseInt(e.target.value);
                                           if (isNaN(amt) || amt < 0) return;
@@ -2867,7 +2865,7 @@ export default function App() {
                                             setUserProfile(prev => ({ ...prev, kreditSisa: prev.kreditSisa + 5 }));
                                           }
                                         }}
-                                        className="h-6 w-6 rounded bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-950 text-[10px] font-bold flex items-center justify-center cursor-pointer font-mono duration-100"
+                                        className="h-6 w-6 rounded bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-[10px] font-bold text-indigo-650 flex items-center justify-center cursor-pointer font-mono duration-100 transition"
                                         title="+5 Cek"
                                       >
                                         +5
@@ -2884,7 +2882,7 @@ export default function App() {
                                             handleUpdateCustomersList(updated);
                                           }
                                         }}
-                                        className="h-6 w-6 rounded bg-rose-950/30 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-955/60 flex items-center justify-center cursor-pointer duration-100 transition"
+                                        className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 flex items-center justify-center cursor-pointer duration-100 transition"
                                         title="Hapus Pelanggan"
                                       >
                                         <Trash2 className="w-3 h-3" />
@@ -2901,46 +2899,46 @@ export default function App() {
                   </div>
 
                   {/* Right Column: Portal Consolidated Configuration (col-span-4) */}
-                  <div className={`col-span-12 ${adminSettingsTab === "bypassgpt" ? "xl:col-span-8" : "xl:col-span-4"} bg-slate-900/40 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4 backdrop-blur-md transition-all duration-300`}>
-                    <div className="border-b border-slate-800 pb-2.5">
-                      <h4 className="font-bold text-white text-xs uppercase tracking-wider">⚙️ Setelan Sistem & Layanan</h4>
-                      <p className="text-[10px] text-slate-404 text-slate-400 mt-0.5 font-sans">Atur jam operasional, tarif, broadcasters, dan katalog.</p>
+                  <div className={`col-span-12 ${adminSettingsTab === "bypassgpt" ? "xl:col-span-8" : "xl:col-span-4"} bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 transition-all duration-300`}>
+                    <div className="border-b border-slate-100 pb-2.5">
+                      <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">⚙️ Setelan Sistem & Layanan</h4>
+                      <p className="text-[10px] text-slate-500 mt-0.5 font-sans">Atur jam operasional, tarif, broadcasters, dan katalog.</p>
                     </div>
 
                     {/* Compact Tabs Switch */}
-                    <div className="flex flex-wrap gap-1 bg-slate-950/50 p-1 rounded-xl border border-slate-800/90">
+                    <div className="flex flex-wrap gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200">
                       <button
                         type="button"
                         onClick={() => setAdminSettingsTab("portal")}
-                        className={`flex-1 text-center py-1.5 rounded-lg text-[9.5px] font-bold transition duration-150 cursor-pointer ${adminSettingsTab === "portal" ? "bg-indigo-650 text-white bg-indigo-600" : "text-slate-400 hover:text-white"}`}
+                        className={`flex-1 text-center py-1.5 rounded-lg text-[9.5px] font-bold transition duration-150 cursor-pointer ${adminSettingsTab === "portal" ? "bg-white text-slate-850 shadow-xs border border-slate-200/40" : "text-slate-500 hover:text-slate-800"}`}
                       >
                         Portal
                       </button>
                       <button
                         type="button"
                         onClick={() => setAdminSettingsTab("announcement")}
-                        className={`flex-1 text-center py-1.5 rounded-lg text-[9.5px] font-bold transition duration-150 cursor-pointer ${adminSettingsTab === "announcement" ? "bg-indigo-650 text-white bg-indigo-600" : "text-slate-400 hover:text-white"}`}
+                        className={`flex-1 text-center py-1.5 rounded-lg text-[9.5px] font-bold transition duration-150 cursor-pointer ${adminSettingsTab === "announcement" ? "bg-white text-slate-850 shadow-xs border border-slate-200/40" : "text-slate-500 hover:text-slate-800"}`}
                       >
                         Broadcaster
                       </button>
                       <button
                         type="button"
                         onClick={() => setAdminSettingsTab("tools")}
-                        className={`flex-1 text-center py-1.5 rounded-lg text-[9.5px] font-bold transition duration-150 cursor-pointer ${adminSettingsTab === "tools" ? "bg-indigo-650 text-white bg-indigo-600" : "text-slate-400 hover:text-white"}`}
+                        className={`flex-1 text-center py-1.5 rounded-lg text-[9.5px] font-bold transition duration-150 cursor-pointer ${adminSettingsTab === "tools" ? "bg-white text-slate-850 shadow-xs border border-slate-200/40" : "text-slate-500 hover:text-slate-800"}`}
                       >
                         Katalog
                       </button>
                       <button
                         type="button"
                         onClick={() => setAdminSettingsTab("system")}
-                        className={`flex-1 text-center py-1.5 rounded-lg text-[9.5px] font-bold transition duration-150 cursor-pointer ${adminSettingsTab === "system" ? "bg-indigo-650 text-white bg-indigo-600" : "text-slate-400 hover:text-white"}`}
+                        className={`flex-1 text-center py-1.5 rounded-lg text-[9.5px] font-bold transition duration-150 cursor-pointer ${adminSettingsTab === "system" ? "bg-white text-slate-850 shadow-xs border border-slate-200/40" : "text-slate-500 hover:text-slate-800"}`}
                       >
                         System
                       </button>
                       <button
                         type="button"
                         onClick={() => setAdminSettingsTab("bypassgpt")}
-                        className={`flex-1 text-center py-1.5 rounded-lg text-[9.5px] font-bold transition duration-150 cursor-pointer ${adminSettingsTab === "bypassgpt" ? "bg-indigo-650 text-white bg-indigo-600" : "text-slate-400 hover:text-white"}`}
+                        className={`flex-1 text-center py-1.5 rounded-lg text-[9.5px] font-bold transition duration-150 cursor-pointer ${adminSettingsTab === "bypassgpt" ? "bg-white text-slate-850 shadow-xs border border-slate-200/40" : "text-slate-500 hover:text-slate-800"}`}
                       >
                         Bypass GPT 🤖
                       </button>
@@ -3154,28 +3152,28 @@ export default function App() {
 
                       {/* BypassGPT Paraphrase Panel is active */}
                       {adminSettingsTab === "bypassgpt" && (
-                        <div className="space-y-4 font-sans text-slate-300">
-                          <div className="p-4 bg-slate-950/60 rounded-xl border border-indigo-950/40 relative overflow-hidden backdrop-blur-md">
+                        <div className="space-y-4 font-sans text-slate-600">
+                          <div className="p-4 bg-white rounded-xl border border-slate-100 relative overflow-hidden">
                             {/* Decorative banner */}
-                            <div className="absolute top-0 right-0 px-2 py-0.5 bg-indigo-500/10 text-indigo-400 font-mono text-[8px] font-bold rounded-bl uppercase tracking-wider">
+                            <div className="absolute top-0 right-0 px-2 py-0.5 bg-indigo-50 text-indigo-650 font-mono text-[8px] font-bold rounded-bl uppercase tracking-wider border-l border-b border-slate-100">
                               PRO BYPASS ENGINE
                             </div>
                             
-                            <h4 className="text-xs font-bold text-slate-100 flex items-center gap-1.5 uppercase tracking-wider mb-1 font-sans">
+                            <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider mb-1 font-sans">
                               🛡️ Bypass GPT Rephrase Tool
                             </h4>
-                            <p className="text-[10px] text-slate-400 mb-4 font-sans">
+                            <p className="text-[10px] text-slate-500 mb-4 font-sans">
                               Tulis ulang naskah buatan AI (ChatGPT, Claude, Gemini, dll.) menjadi gaya bahasa manusia natural yang lolos dari detektor plagiat & AI (Turnitin AI, Copyleaks, GPTZero).
                             </p>
 
                             {/* Options row */}
                             <div className="grid grid-cols-2 gap-3 mb-4">
                               <div>
-                                <label className="block text-[9px] text-slate-400 font-bold uppercase mb-1 font-sans">Mode Rewrite ⚙️</label>
+                                <label className="block text-[9px] text-slate-500 font-bold uppercase mb-1 font-sans">Mode Rewrite ⚙️</label>
                                 <select
                                   value={bpMode}
                                   onChange={(e) => setBpMode(e.target.value)}
-                                  className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-indigo-500 transition cursor-pointer font-sans"
+                                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs text-slate-700 focus:outline-none focus:border-indigo-500 transition cursor-pointer font-sans"
                                 >
                                   <option value="Standard">Standard (Luwes & Natural)</option>
                                   <option value="Balanced">Balanced (Optimal - Rekomendasi)</option>
@@ -3184,11 +3182,11 @@ export default function App() {
                                 </select>
                               </div>
                               <div>
-                                <label className="block text-[9px] text-slate-400 font-bold uppercase mb-1 font-sans">Bahasa Target 🌐</label>
+                                <label className="block text-[9px] text-slate-500 font-bold uppercase mb-1 font-sans">Bahasa Target 🌐</label>
                                 <select
                                   value={bpLanguage}
                                   onChange={(e) => setBpLanguage(e.target.value)}
-                                  className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-indigo-500 transition cursor-pointer font-sans"
+                                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs text-slate-700 focus:outline-none focus:border-indigo-500 transition cursor-pointer font-sans"
                                 >
                                   <option value="id">Bahasa Indonesia 🇮🇩</option>
                                   <option value="en">English (US/UK) 🇺🇸🇬🇧</option>
@@ -3201,8 +3199,8 @@ export default function App() {
                               {/* Left Text Block: Original */}
                               <div className="flex flex-col space-y-1">
                                 <div className="flex justify-between items-center px-1">
-                                  <span className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider font-sans">Teks Sumber (AI Generated)</span>
-                                  <span className="text-[9px] text-slate-500 font-mono">
+                                  <span className="text-[9.5px] font-extrabold text-slate-500 uppercase tracking-wider font-sans">Teks Sumber (AI Generated)</span>
+                                  <span className="text-[9px] text-slate-400 font-mono">
                                     {bpOriginalText.length} karakter / {bpOriginalText.split(/\s+/).filter(Boolean).length} kata
                                   </span>
                                 </div>
@@ -3210,42 +3208,42 @@ export default function App() {
                                   placeholder="Tempel / ketik teks buatan AI Anda di sini..."
                                   value={bpOriginalText}
                                   onChange={(e) => setBpOriginalText(e.target.value)}
-                                  className="w-full h-64 bg-[#050812] border border-slate-800 rounded-xl p-3 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition font-sans resize-none leading-relaxed"
+                                  className="w-full h-64 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-550 transition font-sans resize-none leading-relaxed"
                                 />
                               </div>
 
                               {/* Right Text Block: Paraphrased Result */}
                               <div className="flex flex-col space-y-1">
                                 <div className="flex justify-between items-center px-1 font-sans">
-                                  <span className="text-[9.5px] font-extrabold text-indigo-400 uppercase tracking-wider flex items-center gap-1">
+                                  <span className="text-[9.5px] font-extrabold text-indigo-600 uppercase tracking-wider flex items-center gap-1">
                                     Hasil Humanisasi ✨
                                     {bpUsedFallback && (
-                                      <span className="text-[8px] bg-indigo-500/25 text-indigo-300 font-bold px-1.5 py-0.2 rounded font-mono font-sans">GEMINI FALLBACK</span>
+                                      <span className="text-[8px] bg-indigo-50 text-indigo-650 font-bold px-1.5 py-0.2 rounded font-mono font-sans border border-indigo-200">GEMINI FALLBACK</span>
                                     )}
                                   </span>
                                   {bpParaphrasedText && (
-                                    <span className="text-[9px] text-indigo-300 font-mono">
+                                    <span className="text-[9px] text-indigo-650 font-mono">
                                       {bpParaphrasedText.length} karakter / {bpWordCount} kata
                                     </span>
                                   )}
                                 </div>
                                 
-                                <div className="relative w-full h-64 bg-[#050812]/40 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 font-sans leading-relaxed overflow-y-auto min-h-[16rem]">
+                                <div className="relative w-full h-64 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 font-sans leading-relaxed overflow-y-auto min-h-[16rem]">
                                   {bpParaphrasedText ? (
-                                    <pre className="whitespace-pre-wrap font-sans break-words bg-transparent border-none p-0 text-xs">
+                                    <pre className="whitespace-pre-wrap font-sans break-words bg-transparent border-none p-0 text-xs text-slate-800">
                                       {bpParaphrasedText}
                                     </pre>
                                   ) : (
-                                    <div className="flex flex-col items-center justify-center h-full text-slate-600 font-sans py-12">
+                                    <div className="flex flex-col items-center justify-center h-full text-slate-400 font-sans py-12">
                                       {bpLoading ? (
                                         <div className="flex flex-col items-center space-y-2">
-                                          <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin font-sans"></div>
-                                          <span className="text-[10px] text-indigo-400 font-medium font-sans">Bypass GPT sedang menulis ulang...</span>
+                                          <div className="w-5 h-5 border-2 border-indigo-550 border-t-transparent rounded-full animate-spin font-sans"></div>
+                                          <span className="text-[10px] text-indigo-600 font-medium font-sans">Bypass GPT sedang menulis ulang...</span>
                                         </div>
                                       ) : (
                                         <>
                                           <span className="text-xl">🤖 &rarr; 🧑‍💻</span>
-                                          <span className="text-[10px] mt-1 text-slate-500 text-center px-6 font-sans">Centang parameter Anda & ketik di sebelah kiri, lalu klik tombol Bypass di bawah.</span>
+                                          <span className="text-[10px] mt-1 text-slate-500 text-center px-6 font-sans">Ketik di sebelah kiri, lalu klik tombol Bypass di bawah.</span>
                                         </>
                                       )}
                                     </div>
@@ -3270,7 +3268,7 @@ export default function App() {
 
                             {/* Error section */}
                             {bpError && (
-                              <div className="mt-3 p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-[10px] font-sans">
+                              <div className="mt-3 p-3 bg-rose-50 border border-rose-250 text-rose-600 rounded-xl text-[10px] font-sans">
                                 <strong>⚠️ Terjadi galat:</strong> {bpError}
                               </div>
                             )}
@@ -3283,8 +3281,8 @@ export default function App() {
                                 onClick={handleBypassGptParaphrase}
                                 className={`flex-1 py-2.5 rounded-xl font-bold text-[11px] uppercase tracking-wider transition duration-150 flex items-center justify-center gap-1.5 cursor-pointer border font-sans ${
                                   bpLoading 
-                                    ? "bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed" 
-                                    : "bg-indigo-600 hover:bg-indigo-700 hover:scale-[1.02] text-white border-indigo-500 shadow-lg shadow-indigo-600/15"
+                                    ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed" 
+                                    : "bg-indigo-600 hover:bg-indigo-700 hover:scale-[1.02] text-white border-indigo-500 shadow-md shadow-indigo-600/10"
                                 }`}
                               >
                                 {bpLoading ? (
@@ -3302,7 +3300,7 @@ export default function App() {
                                     setBpParaphrasedText("");
                                     setBpError("");
                                   }}
-                                  className="px-4 py-2.5 bg-slate-900 border border-slate-805 border-slate-800 text-slate-400 hover:text-white rounded-xl text-[11px] font-bold transition duration-150 cursor-pointer font-sans"
+                                  className="px-4 py-2.5 bg-slate-100 border border-slate-200 text-slate-650 hover:bg-slate-200 hover:text-slate-900 rounded-xl text-[11px] font-bold transition duration-150 cursor-pointer font-sans"
                                 >
                                   Reset
                                 </button>
