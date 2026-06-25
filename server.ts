@@ -7,6 +7,8 @@ import fs from "fs";
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 import multer from "multer";
+import nodemailer from "nodemailer";
+import crypto from "crypto";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -767,6 +769,141 @@ Teks yang harus diparaphrase:
     console.error("[BypassGPT Proxy] Fatal error:", err);
     return res.status(500).json({ error: err.message || "Terjadi kesalahan pada sistem rewriter." });
   }
+});
+
+// Nodemailer helper to send reset password email
+async function sendResetEmail(email: string, resetLink: string, fullName: string) {
+  const host = process.env.SMTP_HOST;
+  const port = parseInt(process.env.SMTP_PORT || "587");
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  const from = process.env.SMTP_FROM || "no-reply@kingsimilarity.com";
+
+  const emailSubject = "Permintaan Atur Ulang Kata Sandi - Queen Similarity Check";
+  const emailBodyHtml = `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff; color: #1e293b;">
+      <h2 style="color: #4f46e5; margin-top: 0; font-size: 20px;">Atur Ulang Kata Sandi</h2>
+      <p>Halo <strong>${fullName}</strong>,</p>
+      <p>Kami menerima permintaan untuk mengatur ulang kata sandi akun Queen Similarity Check Anda. Silakan klik tombol di bawah ini untuk mengatur ulang kata sandi Anda:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetLink}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Atur Ulang Kata Sandi</a>
+      </div>
+      <p style="font-size: 13px; color: #64748b;">Atau salin dan tempel tautan berikut ke browser Anda:</p>
+      <p style="font-size: 13px; color: #4f46e5; word-break: break-all; background-color: #f8fafc; padding: 10px; border-radius: 6px;">${resetLink}</p>
+      <p style="font-size: 12px; color: #94a3b8; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 15px;">Tautan ini hanya berlaku selama 1 jam. Jika Anda tidak meminta pengaturan ulang ini, Anda dapat mengabaikan email ini dengan aman.</p>
+    </div>
+  `;
+
+  if (!host || !user || !pass) {
+    console.log("==================================================");
+    console.log("⚠️ SMTP tidak terkonfigurasi. Email simulasi dikirim:");
+    console.log("KE:", email);
+    console.log("NAMA:", fullName);
+    console.log("LINK:", resetLink);
+    console.log("==================================================");
+    return {
+      success: true,
+      simulated: true,
+      resetLink
+    };
+  }
+
+  const transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: {
+      user,
+      pass
+    }
+  });
+
+  const mailOptions = {
+    from: `"Queen Similarity Check" <${from}>`,
+    to: email,
+    subject: emailSubject,
+    html: emailBodyHtml
+  };
+
+  await transporter.sendMail(mailOptions);
+  return {
+    success: true,
+    simulated: false
+  };
+}
+
+app.post("/api/auth/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  if (!email || typeof email !== "string" || !email.trim()) {
+    return res.status(400).json({ error: "Email wajib diisi." });
+  }
+
+  const cleanEmail = email.toLowerCase().trim();
+  const currentState = loadState();
+
+  const customerIndex = currentState.customers.findIndex(c => c.email && c.email.toLowerCase() === cleanEmail);
+  if (customerIndex === -1) {
+    return res.status(404).json({ error: "Alamat email ini tidak terdaftar di database kami." });
+  }
+
+  const customer = currentState.customers[customerIndex];
+  const token = crypto.randomBytes(20).toString("hex");
+  const expires = Date.now() + 3600000; // 1 hour validity
+
+  customer.resetToken = token;
+  customer.resetTokenExpires = expires;
+
+  saveState(currentState);
+
+  const referer = req.headers.referer || `${req.protocol}://${req.get('host')}/`;
+  const baseUrl = referer.split('?')[0];
+  const resetLink = `${baseUrl}?resetToken=${token}`;
+
+  try {
+    const mailResult = await sendResetEmail(cleanEmail, resetLink, customer.fullName || customer.username);
+    return res.json({
+      success: true,
+      message: "Tautan pengaturan ulang kata sandi telah dikirim ke email Anda.",
+      simulated: mailResult.simulated,
+      resetLink: mailResult.simulated ? mailResult.resetLink : undefined
+    });
+  } catch (err: any) {
+    console.error("[Forgot Password] Gagal mengirim email:", err);
+    return res.status(500).json({ error: "Gagal mengirim email pemulihan. Silakan hubungi Admin Kak Melda." });
+  }
+});
+
+app.post("/api/auth/reset-password", (req, res) => {
+  const { token, newPassword } = req.body;
+  if (!token || typeof token !== "string" || !token.trim()) {
+    return res.status(400).json({ error: "Token reset wajib diisi." });
+  }
+  if (!newPassword || typeof newPassword !== "string" || !newPassword.trim()) {
+    return res.status(400).json({ error: "Kata sandi baru wajib diisi." });
+  }
+
+  const currentState = loadState();
+  const customerIndex = currentState.customers.findIndex(c => 
+    c.resetToken === token && 
+    c.resetTokenExpires && 
+    c.resetTokenExpires > Date.now()
+  );
+
+  if (customerIndex === -1) {
+    return res.status(400).json({ error: "Tautan pengaturan ulang kata sandi tidak valid atau telah kedaluwarsa. Silakan ajukan ulang." });
+  }
+
+  const customer = currentState.customers[customerIndex];
+  customer.password = newPassword;
+  delete customer.resetToken;
+  delete customer.resetTokenExpires;
+
+  saveState(currentState);
+
+  return res.json({
+    success: true,
+    message: "Kata sandi Anda berhasil diperbarui. Silakan masuk menggunakan kata sandi baru Anda."
+  });
 });
 
 app.post("/api/update-customers", (req, res) => {

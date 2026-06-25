@@ -133,6 +133,18 @@ export default function App() {
   const [registerPassword, setRegisterPassword] = useState("");
   const [authError, setAuthError] = useState("");
 
+  // Forgot password and reset password state variables
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccessMessage, setForgotSuccessMessage] = useState("");
+  const [simulatedResetLink, setSimulatedResetLink] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSuccessMessage, setResetSuccessMessage] = useState("");
+
+
   // Files list state
   const [files, setFiles] = useState<CheckedDocument[]>(() => {
     const saved = localStorage.getItem("queen_files_list");
@@ -384,6 +396,19 @@ export default function App() {
       }
     } catch {
       // ignore
+    }
+  }, []);
+
+  // Check for resetToken in the URL to trigger the reset password view
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("resetToken");
+    if (token) {
+      setResetToken(token);
+      setCurrentView("reset-password");
+      // Clean up query param from URL to avoid repeating on reload
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
     }
   }, []);
 
@@ -843,6 +868,86 @@ export default function App() {
     setUserProfile(newCust);
     setDashboardTab("list-file");
     setCurrentView("dashboard");
+  };
+
+  // Handle forgot password request
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail.trim()) {
+      setAuthError("Email tidak boleh kosong.");
+      return;
+    }
+
+    setAuthError("");
+    setForgotSuccessMessage("");
+    setSimulatedResetLink("");
+    setForgotLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setAuthError(data.error || "Gagal mengirim permintaan lupa sandi.");
+        return;
+      }
+
+      setForgotSuccessMessage(data.message);
+      if (data.simulated && data.resetLink) {
+        setSimulatedResetLink(data.resetLink);
+      }
+    } catch (err) {
+      console.error(err);
+      setAuthError("Terjadi kesalahan jaringan. Silakan coba beberapa saat lagi.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  // Handle reset password submit
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassword.trim() || !confirmNewPassword.trim()) {
+      setAuthError("Mohon lengkapi semua kolom kata sandi.");
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setAuthError("Konfirmasi kata sandi tidak sesuai.");
+      return;
+    }
+
+    setAuthError("");
+    setResetSuccessMessage("");
+    setResetLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: resetToken, newPassword })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setAuthError(data.error || "Gagal mengatur ulang kata sandi.");
+        return;
+      }
+
+      setResetSuccessMessage(data.message);
+      // Reset inputs
+      setNewPassword("");
+      setConfirmNewPassword("");
+    } catch (err) {
+      console.error(err);
+      setAuthError("Terjadi kesalahan jaringan. Silakan coba beberapa saat lagi.");
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   const handleLogout = () => {
@@ -1405,13 +1510,19 @@ export default function App() {
 
 
       {/* -------------------- VIEW 2 & REGISTER: AUTH MODALS -------------------- */}
-      {(currentView === "login" || currentView === "register") && (
+      {(currentView === "login" || currentView === "register" || currentView === "forgot-password" || currentView === "reset-password") && (
         <div className="min-h-screen flex flex-col lg:flex-row bg-slate-100">
           
           {/* Back button link absolute left top */}
           <div className="p-6 absolute left-0 top-0">
             <button 
-              onClick={() => setCurrentView("landing")}
+              onClick={() => {
+                setAuthError("");
+                setForgotSuccessMessage("");
+                setSimulatedResetLink("");
+                setResetSuccessMessage("");
+                setCurrentView("landing");
+              }}
               className="flex items-center gap-2 text-xs font-semibold text-slate-600 hover:text-indigo-600 bg-white border border-slate-200 rounded-xl px-4 py-2.5 transition duration-150 shadow-2xs group cursor-pointer"
             >
               <ArrowLeft size={14} className="group-hover:-translate-x-1 transition" /> 
@@ -1447,7 +1558,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Right panel: Login or Signup form */}
+          {/* Right panel: Login, Register, Forgot Password, or Reset Password form */}
           <div className="flex-1 flex items-center justify-center p-6 sm:p-12">
             <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-xl p-8 space-y-6">
               
@@ -1458,13 +1569,16 @@ export default function App() {
                 </div>
                 <div>
                   <h3 className="font-display font-bold text-xl text-slate-900">
-                    {currentView === "login" ? "Masuk" : "Daftar Akun Baru"}
+                    {currentView === "login" && "Masuk"}
+                    {currentView === "register" && "Daftar Akun Baru"}
+                    {currentView === "forgot-password" && "Lupa Kata Sandi"}
+                    {currentView === "reset-password" && "Atur Ulang Kata Sandi"}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    {currentView === "login" 
-                      ? "Masuk ke akun Anda untuk melanjutkan" 
-                      : "Buat akun gratis Anda hanya dalam waktu 1 menit"
-                    }
+                    {currentView === "login" && "Masuk ke akun Anda untuk melanjutkan"}
+                    {currentView === "register" && "Buat akun gratis Anda hanya dalam waktu 1 menit"}
+                    {currentView === "forgot-password" && "Masukkan email terdaftar Anda untuk mengatur ulang kata sandi"}
+                    {currentView === "reset-password" && "Buat kata sandi baru untuk akun Anda"}
                   </p>
                 </div>
               </div>
@@ -1477,15 +1591,15 @@ export default function App() {
               )}
 
               {/* Form elements */}
-              {currentView === "login" ? (
+              {currentView === "login" && (
                 // login form
                 <form onSubmit={handleLoginSubmit} className="space-y-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-500 block">USERNAME</label>
+                    <label className="text-xs font-semibold text-slate-500 block">USERNAME ATAU EMAIL</label>
                     <input
                       type="text"
                       className="w-full text-slate-800 text-sm border border-slate-200 rounded-xl px-4 py-3 placeholder:text-slate-400 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs"
-                      placeholder="Masukkan username"
+                      placeholder="Masukkan username atau email"
                       value={loginUsername}
                       onChange={(e) => setLoginUsername(e.target.value)}
                     />
@@ -1494,7 +1608,19 @@ export default function App() {
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-semibold text-slate-500 block">PASSWORD</label>
-                      <a href="#" className="text-[10px] text-indigo-600 hover:underline">Sandi Lupa?</a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthError("");
+                          setForgotSuccessMessage("");
+                          setForgotEmail("");
+                          setSimulatedResetLink("");
+                          setCurrentView("forgot-password");
+                        }}
+                        className="text-[11px] text-indigo-600 font-medium hover:underline bg-transparent border-none cursor-pointer"
+                      >
+                        Lupa Password?
+                      </button>
                     </div>
                     <div className="relative">
                       <input
@@ -1515,7 +1641,9 @@ export default function App() {
                     Masuk
                   </button>
                 </form>
-              ) : (
+              )}
+
+              {currentView === "register" && (
                 // register form
                 <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
                   <div className="space-y-1">
@@ -1582,26 +1710,207 @@ export default function App() {
                 </form>
               )}
 
+              {currentView === "forgot-password" && (
+                // forgot password form
+                <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+                  {forgotSuccessMessage ? (
+                    <div className="space-y-4">
+                      <div className="bg-emerald-50 text-emerald-800 text-xs p-4 rounded-xl border border-emerald-100 space-y-2">
+                        <div className="font-semibold flex items-center gap-1">✔️ Berhasil!</div>
+                        <div>{forgotSuccessMessage}</div>
+                      </div>
+                      
+                      {simulatedResetLink && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2 text-slate-700">
+                          <span className="text-[11px] text-amber-800 font-bold uppercase tracking-wider block">🔬 Mode Demo / Simulasi:</span>
+                          <p className="text-[11px] leading-relaxed">SMTP email belum diatur di server. Anda dapat menguji proses pengaturan ulang kata sandi secara langsung dengan mengeklik tautan di bawah ini:</p>
+                          <a 
+                            href={simulatedResetLink} 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              const params = new URL(simulatedResetLink).searchParams;
+                              const token = params.get("resetToken") || "";
+                              setResetToken(token);
+                              setAuthError("");
+                              setForgotSuccessMessage("");
+                              setSimulatedResetLink("");
+                              setCurrentView("reset-password");
+                            }}
+                            className="inline-block text-xs font-bold text-indigo-600 hover:underline bg-white px-3 py-1.5 rounded-lg border border-indigo-200 cursor-pointer"
+                          >
+                            Buka Form Atur Ulang Sandi &rarr;
+                          </a>
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setForgotSuccessMessage("");
+                          setSimulatedResetLink("");
+                          setForgotEmail("");
+                          setAuthError("");
+                          setCurrentView("login");
+                        }}
+                        className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold py-3 rounded-xl transition duration-150 text-xs cursor-pointer"
+                      >
+                        Kembali ke Halaman Masuk
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-slate-500 block">ALAMAT EMAIL REGISTERED</label>
+                        <input
+                          type="email"
+                          required
+                          className="w-full text-slate-800 text-sm border border-slate-200 rounded-xl px-4 py-3 placeholder:text-slate-400 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs"
+                          placeholder="contoh@domain.com"
+                          value={forgotEmail}
+                          onChange={(e) => setForgotEmail(e.target.value)}
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={forgotLoading}
+                        className={`w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition duration-150 shadow-xs hover:shadow-md cursor-pointer text-xs flex items-center justify-center gap-2 ${forgotLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                      >
+                        {forgotLoading ? "Mengirim..." : "Kirim Tautan Atur Ulang"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthError("");
+                          setForgotEmail("");
+                          setCurrentView("login");
+                        }}
+                        className="w-full bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold py-2.5 rounded-xl transition duration-150 text-xs cursor-pointer border border-slate-200/60"
+                      >
+                        Batal
+                      </button>
+                    </>
+                  )}
+                </form>
+              )}
+
+              {currentView === "reset-password" && (
+                // reset password form
+                <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+                  {resetSuccessMessage ? (
+                    <div className="space-y-4">
+                      <div className="bg-emerald-50 text-emerald-800 text-xs p-4 rounded-xl border border-emerald-100">
+                        <div className="font-semibold mb-1 flex items-center gap-1">✔️ Berhasil!</div>
+                        <div>{resetSuccessMessage}</div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setResetSuccessMessage("");
+                          setAuthError("");
+                          setNewPassword("");
+                          setConfirmNewPassword("");
+                          setCurrentView("login");
+                        }}
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition duration-150 text-xs cursor-pointer shadow-xs hover:shadow-md"
+                      >
+                        Masuk Sekarang
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-slate-500 block">KATA SANDI BARU</label>
+                        <input
+                          type="password"
+                          required
+                          className="w-full text-slate-800 text-sm border border-slate-200 rounded-xl px-4 py-3 placeholder:text-slate-400 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs"
+                          placeholder="Masukkan kata sandi baru"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-semibold text-slate-500 block">KONFIRMASI KATA SANDI BARU</label>
+                        <input
+                          type="password"
+                          required
+                          className="w-full text-slate-800 text-sm border border-slate-200 rounded-xl px-4 py-3 placeholder:text-slate-400 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 shadow-2xs"
+                          placeholder="Ulangi kata sandi baru"
+                          value={confirmNewPassword}
+                          onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={resetLoading}
+                        className={`w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition duration-150 shadow-xs hover:shadow-md cursor-pointer text-xs flex items-center justify-center gap-2 ${resetLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                      >
+                        {resetLoading ? "Menyimpan..." : "Simpan Kata Sandi Baru"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthError("");
+                          setNewPassword("");
+                          setConfirmNewPassword("");
+                          setCurrentView("login");
+                        }}
+                        className="w-full bg-slate-50 hover:bg-slate-100 text-slate-600 font-semibold py-2.5 rounded-xl transition duration-150 text-xs cursor-pointer border border-slate-200/60"
+                      >
+                        Batal
+                      </button>
+                    </>
+                  )}
+                </form>
+              )}
+
               {/* Login/register switcher footer */}
               <div className="text-center pt-3 border-t border-slate-100 text-xs">
-                {currentView === "login" ? (
+                {currentView === "login" && (
                   <p className="text-slate-500 font-sans">
                     Belum punya akun?{" "}
                     <button 
-                      onClick={() => setCurrentView("register")}
+                      onClick={() => {
+                        setAuthError("");
+                        setCurrentView("register");
+                      }}
                       className="text-indigo-600 font-semibold hover:underline cursor-pointer"
                     >
                       Daftar gratis sekarang
                     </button>
                   </p>
-                ) : (
+                )}
+                {currentView === "register" && (
                   <p className="text-slate-500 font-sans">
                     Sudah punya akun?{" "}
                     <button 
-                      onClick={() => setCurrentView("login")}
+                      onClick={() => {
+                        setAuthError("");
+                        setCurrentView("login");
+                      }}
                       className="text-indigo-600 font-semibold hover:underline cursor-pointer"
                     >
                       Masuk sekarang
+                    </button>
+                  </p>
+                )}
+                {(currentView === "forgot-password" || currentView === "reset-password") && (
+                  <p className="text-slate-500 font-sans">
+                    Kembali ke halaman{" "}
+                    <button 
+                      onClick={() => {
+                        setAuthError("");
+                        setCurrentView("login");
+                      }}
+                      className="text-indigo-600 font-semibold hover:underline cursor-pointer"
+                    >
+                      Masuk akun
                     </button>
                   </p>
                 )}

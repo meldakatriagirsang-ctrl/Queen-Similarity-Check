@@ -52,5 +52,5 @@ export interface UserProfile {
   password?: string;
 }
 
-export type AppView = "landing" | "login" | "register" | "dashboard";
+export type AppView = "landing" | "login" | "register" | "forgot-password" | "reset-password" | "dashboard";
 export type DashboardView = "list-file" | "ai-chatbot" | "profil" | "workspace-admin" | "extra-services";
