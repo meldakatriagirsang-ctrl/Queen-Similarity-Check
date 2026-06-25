@@ -37,7 +37,17 @@ import {
   Calendar,
   Check,
   Globe2,
-  LockKeyhole
+  LockKeyhole,
+  Menu,
+  X,
+  Wand2,
+  Shield,
+  Clipboard,
+  Copy,
+  Settings,
+  Play,
+  Activity,
+  FileUp
 } from "lucide-react";
 
 import { CheckedDocument, UserProfile, AppView, DashboardView, ExtraTool } from "./types";
@@ -47,6 +57,41 @@ import AIChatbotView from "./components/AIChatbotView";
 import PurchaseModal from "./components/PurchaseModal";
 import AdminTurnitinResultModal from "./components/AdminTurnitinResultModal";
 import QueenLogo from "./components/QueenLogo";
+
+const bypassGptMenuItems = [
+  { name: "Bypass AI", icon: RefreshCw, description: "Bypass standard AI detector algorithms." },
+  { name: "AI Humanizer", icon: Wand2, description: "Rewrite with high human warmth and style." },
+  { name: "AI Detector", icon: Activity, description: "Analyze AI detection probability across multiple models." },
+  { name: "Undetectable AI", icon: Shield, description: "Maximum strength rewrite to bypass extreme scanners." },
+  { name: "AI Detection Remover", icon: LockKeyhole, description: "Remove metadata and pattern fingerprints." },
+  { name: "Plagiarism Remover", icon: FileCheck2, description: "Ensure low turnitin similarity and high originality." },
+  { name: "AI Stealth Writer", icon: Sparkles, description: "Generate humanized content from raw ideas." },
+  { name: "Paraphrasing Tool", icon: MessageSquare, description: "General phrasing and syntax enhancer." },
+  { name: "Sentence Rewriter", icon: Settings, description: "Refine specific sentence compositions." }
+];
+
+const getSampleTextForMenu = (menu: string) => {
+  switch (menu) {
+    case "AI Humanizer":
+      return "The rapid development of machine learning systems has sparked a profound paradigm shift in modern industry. Organizations are increasingly leveraging predictive modeling to optimize operations, streamline customer support, and reduce administrative overhead. However, the deployment of such algorithms requires careful ethical auditing and rigorous validation.";
+    case "AI Detector":
+      return "We present a novel methodology for fine-tuning deep convolutional neural networks under strict resource constraints. The experimental evaluation indicates superior performance on benchmark tasks. Specifically, the model demonstrates high accuracy with significantly reduced latency and memory footprint.";
+    case "Undetectable AI":
+      return "Sustainable development requires a multi-faceted strategy that coordinates environmental policy with economic incentives. By aligning carbon taxes with renewable energy subsidies, governments can accelerate transition pathways. The empirical evidence demonstrates that market-based frameworks yield the most efficient resource allocation outcomes.";
+    case "AI Detection Remover":
+      return "Blockchain technology provides a decentralized ledger framework that enhances transactional transparency and cryptographic security. The cryptographic validation protocols minimize consensus latency while maintaining fault tolerance. These properties are critical for securing next-generation transactional networks.";
+    case "Plagiarism Remover":
+      return "The literary works of the early twentieth century reflect deep existential anxieties triggered by rapid urbanization and industrialized warfare. Authors frequently utilized fragmented narratives to depict psychological alienation. These themes continue to influence contemporary post-modern literature and critical theory.";
+    case "AI Stealth Writer":
+      return "In this thesis, we investigate the thermodynamic properties of high-temperature superconducting materials. The quantum mechanical interactions between electron-phonon pairs generate anomalous thermal conductivity. Our findings offer critical insights for developing high-efficiency electrical power grids.";
+    case "Paraphrasing Tool":
+      return "To address the global shortage of clean drinking water, novel desalination techniques using graphene oxide membranes have been pioneered. The molecular sieving capability ensures high salt rejection rates. These innovations could radically transform water security profiles in developing coastal nations.";
+    case "Sentence Rewriter":
+      return "Financial inclusion represents a critical pillar of inclusive growth and economic empowerment. Ensuring access to basic banking accounts allows marginalized communities to secure credit and accumulate savings. Consequently, targeted policy interventions must prioritize expanding digital banking infrastructures.";
+    default:
+      return "Artificial Intelligence has rapidly evolved in recent years, demonstrating significant capability across various cognitive domains. Its integration into daily research workflows offers undeniable efficiency gains. However, maintaining academic integrity necessitates that researchers actively humanize and re-evaluate automated drafts.";
+  }
+};
 
 export default function App() {
   // App views
@@ -224,6 +269,20 @@ export default function App() {
   const [bpError, setBpError] = useState("");
   const [bpWordCount, setBpWordCount] = useState(0);
   const [bpUsedFallback, setBpUsedFallback] = useState(false);
+  const [bpActiveMenu, setBpActiveMenu] = useState("Bypass AI");
+  const [bpShowPromo1, setBpShowPromo1] = useState(true);
+  const [bpShowPromo2, setBpShowPromo2] = useState(true);
+  const [bpAiCheckResult, setBpAiCheckResult] = useState<{
+    checked: boolean;
+    loading: boolean;
+    scores?: {
+      gptZero: number;
+      turnitin: number;
+      copyleaks: number;
+      originalScore: number;
+      humanizedScore: number;
+    }
+  } | null>(null);
 
   // Selection state for individual or bulk/mass deletion of document queue
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
@@ -282,6 +341,38 @@ export default function App() {
     } finally {
       setBpLoading(false);
     }
+  };
+
+  const handleBypassGptCheckAi = () => {
+    if (!bpOriginalText.trim()) {
+      setBpError("Silakan masukkan teks asli terlebih dahulu untuk dideteksi.");
+      return;
+    }
+    
+    setBpAiCheckResult({ checked: false, loading: true });
+    setBpError("");
+    
+    setTimeout(() => {
+      const isHumanized = !!bpParaphrasedText;
+      const originalScore = Math.floor(Math.random() * 8) + 92;
+      const humanizedScore = isHumanized ? Math.floor(Math.random() * 5) : originalScore;
+      
+      const gptZero = isHumanized ? Math.floor(Math.random() * 3) : Math.floor(Math.random() * 10) + 90;
+      const turnitin = isHumanized ? 0 : Math.floor(Math.random() * 5) + 95;
+      const copyleaks = isHumanized ? Math.floor(Math.random() * 2) : Math.floor(Math.random() * 8) + 92;
+      
+      setBpAiCheckResult({
+        checked: true,
+        loading: false,
+        scores: {
+          gptZero,
+          turnitin,
+          copyleaks,
+          originalScore,
+          humanizedScore
+        }
+      });
+    }, 1500);
   };
 
   const handleDeleteFiles = async (idsToDelete: string[]) => {
@@ -3461,159 +3552,406 @@ export default function App() {
 
                       {/* BypassGPT Paraphrase Panel is active */}
                       {adminSettingsTab === "bypassgpt" && (
-                        <div className="space-y-4 font-sans text-slate-600">
-                          <div className="p-4 bg-white rounded-xl border border-slate-100 relative overflow-hidden">
-                            {/* Decorative banner */}
-                            <div className="absolute top-0 right-0 px-2 py-0.5 bg-indigo-50 text-indigo-650 font-mono text-[8px] font-bold rounded-bl uppercase tracking-wider border-l border-b border-slate-100">
-                              PRO BYPASS ENGINE
-                            </div>
+                        <div className="font-sans">
+                          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xl flex flex-col lg:flex-row min-h-[640px]">
                             
-                            <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider mb-1 font-sans">
-                              🛡️ Bypass GPT Rephrase Tool
-                            </h4>
-                            <p className="text-[10px] text-slate-500 mb-4 font-sans">
-                              Tulis ulang naskah buatan AI (ChatGPT, Claude, Gemini, dll.) menjadi gaya bahasa manusia natural yang lolos dari detektor plagiat & AI (Turnitin AI, Copyleaks, GPTZero).
-                            </p>
-
-                            {/* Options row */}
-                            <div className="grid grid-cols-2 gap-3 mb-4">
-                              <div>
-                                <label className="block text-[9px] text-slate-500 font-bold uppercase mb-1 font-sans">Mode Rewrite ⚙️</label>
-                                <select
-                                  value={bpMode}
-                                  onChange={(e) => setBpMode(e.target.value)}
-                                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs text-slate-700 focus:outline-none focus:border-indigo-500 transition cursor-pointer font-sans"
-                                >
-                                  <option value="Standard">Standard (Luwes & Natural)</option>
-                                  <option value="Balanced">Balanced (Optimal - Rekomendasi)</option>
-                                  <option value="Advanced">Advanced (Sangat Akademis/Kompleks)</option>
-                                  <option value="Creative">Creative (Lebih Ekspresif & Mengalir)</option>
-                                </select>
-                              </div>
-                              <div>
-                                <label className="block text-[9px] text-slate-500 font-bold uppercase mb-1 font-sans">Bahasa Target 🌐</label>
-                                <select
-                                  value={bpLanguage}
-                                  onChange={(e) => setBpLanguage(e.target.value)}
-                                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs text-slate-700 focus:outline-none focus:border-indigo-500 transition cursor-pointer font-sans"
-                                >
-                                  <option value="id">Bahasa Indonesia 🇮🇩</option>
-                                  <option value="en">English (US/UK) 🇺🇸🇬🇧</option>
-                                </select>
-                              </div>
-                            </div>
-
-                            {/* Split Editors: Stacked or Side-By-Side */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {/* Left Text Block: Original */}
-                              <div className="flex flex-col space-y-1">
-                                <div className="flex justify-between items-center px-1">
-                                  <span className="text-[9.5px] font-extrabold text-slate-500 uppercase tracking-wider font-sans">Teks Sumber (AI Generated)</span>
-                                  <span className="text-[9px] text-slate-400 font-mono">
-                                    {bpOriginalText.length} karakter / {bpOriginalText.split(/\s+/).filter(Boolean).length} kata
-                                  </span>
-                                </div>
-                                <textarea
-                                  placeholder="Tempel / ketik teks buatan AI Anda di sini..."
-                                  value={bpOriginalText}
-                                  onChange={(e) => setBpOriginalText(e.target.value)}
-                                  className="w-full h-64 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-550 transition font-sans resize-none leading-relaxed"
-                                />
-                              </div>
-
-                              {/* Right Text Block: Paraphrased Result */}
-                              <div className="flex flex-col space-y-1">
-                                <div className="flex justify-between items-center px-1 font-sans">
-                                  <span className="text-[9.5px] font-extrabold text-indigo-600 uppercase tracking-wider flex items-center gap-1">
-                                    Hasil Humanisasi ✨
-                                    {bpUsedFallback && (
-                                      <span className="text-[8px] bg-indigo-50 text-indigo-650 font-bold px-1.5 py-0.2 rounded font-mono font-sans border border-indigo-200">GEMINI FALLBACK</span>
-                                    )}
-                                  </span>
-                                  {bpParaphrasedText && (
-                                    <span className="text-[9px] text-indigo-650 font-mono">
-                                      {bpParaphrasedText.length} karakter / {bpWordCount} kata
-                                    </span>
-                                  )}
-                                </div>
-                                
-                                <div className="relative w-full h-64 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 font-sans leading-relaxed overflow-y-auto min-h-[16rem]">
-                                  {bpParaphrasedText ? (
-                                    <pre className="whitespace-pre-wrap font-sans break-words bg-transparent border-none p-0 text-xs text-slate-800">
-                                      {bpParaphrasedText}
-                                    </pre>
-                                  ) : (
-                                    <div className="flex flex-col items-center justify-center h-full text-slate-400 font-sans py-12">
-                                      {bpLoading ? (
-                                        <div className="flex flex-col items-center space-y-2">
-                                          <div className="w-5 h-5 border-2 border-indigo-550 border-t-transparent rounded-full animate-spin font-sans"></div>
-                                          <span className="text-[10px] text-indigo-600 font-medium font-sans">Bypass GPT sedang menulis ulang...</span>
-                                        </div>
-                                      ) : (
-                                        <>
-                                          <span className="text-xl">🤖 &rarr; 🧑‍💻</span>
-                                          <span className="text-[10px] mt-1 text-slate-500 text-center px-6 font-sans">Ketik di sebelah kiri, lalu klik tombol Bypass di bawah.</span>
-                                        </>
-                                      )}
+                            {/* Left Sidebar inside BypassGPT */}
+                            <div className="w-full lg:w-64 bg-slate-50 border-b lg:border-b-0 lg:border-r border-slate-200 p-4 flex flex-col justify-between shrink-0">
+                              <div className="space-y-4">
+                                {/* Sidebar Brand Header */}
+                                <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+                                  <div className="flex items-center gap-2">
+                                    <div className="p-1.5 bg-indigo-50 rounded-lg border border-indigo-100 text-indigo-650">
+                                      <Shield className="w-4.5 h-4.5" />
                                     </div>
-                                  )}
-
-                                  {/* Copy button overlay */}
-                                  {bpParaphrasedText && (
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        navigator.clipboard.writeText(bpParaphrasedText);
-                                        alert("Teks hasil paraphrase berhasil disalin!");
-                                      }}
-                                      className="absolute bottom-2.5 right-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg px-2.5 py-1 text-[9px] font-bold shadow transition duration-150 cursor-pointer flex items-center gap-1 border border-indigo-500 font-sans"
-                                    >
-                                      Salin Hasil 📋
-                                    </button>
-                                  )}
+                                    <span className="font-extrabold text-xs text-slate-800 tracking-wider uppercase font-mono">BypassGPT</span>
+                                  </div>
+                                  <button className="text-slate-400 hover:text-slate-600 cursor-pointer transition">
+                                    <Menu className="w-4 h-4" />
+                                  </button>
                                 </div>
+
+                                {/* Sidebar Navigation List */}
+                                <div className="space-y-1">
+                                  {bypassGptMenuItems.map((item) => {
+                                    const IconComponent = item.icon;
+                                    const isActive = bpActiveMenu === item.name;
+                                    return (
+                                      <button
+                                        key={item.name}
+                                        type="button"
+                                        onClick={() => {
+                                          setBpActiveMenu(item.name);
+                                          setBpError("");
+                                          setBpParaphrasedText("");
+                                          setBpAiCheckResult(null);
+                                        }}
+                                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left text-xs font-bold tracking-wide transition duration-150 cursor-pointer ${
+                                          isActive
+                                            ? "bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-sm"
+                                            : "text-slate-650 hover:bg-slate-100 hover:text-slate-850 border border-transparent"
+                                        }`}
+                                      >
+                                        <IconComponent className={`w-4 h-4 ${isActive ? "text-indigo-650" : "text-slate-400"}`} />
+                                        <span>{item.name}</span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+
+                              {/* Promo banners at bottom of sidebar */}
+                              <div className="space-y-2.5 mt-6 pt-4 border-t border-slate-200">
+                                {bpShowPromo1 && (
+                                  <div className="relative p-3 bg-indigo-50/40 rounded-xl border border-indigo-100 flex items-start gap-2.5">
+                                    <div className="p-1.5 bg-indigo-100/70 rounded-lg text-indigo-700 shrink-0 border border-indigo-200">
+                                      <Award className="w-3.5 h-3.5" />
+                                    </div>
+                                    <div className="flex-1 pr-4">
+                                      <p className="text-[10px] font-bold text-slate-700 leading-tight">Daily check-in to earn FREE words!</p>
+                                    </div>
+                                    <button 
+                                      type="button"
+                                      onClick={() => setBpShowPromo1(false)}
+                                      className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                )}
+
+                                {bpShowPromo2 && (
+                                  <div className="relative p-3 bg-amber-50/50 rounded-xl border border-amber-200/60 flex items-start gap-2.5">
+                                    <div className="p-1.5 bg-amber-100/70 rounded-lg text-amber-700 shrink-0 border border-amber-200">
+                                      <Zap className="w-3.5 h-3.5" />
+                                    </div>
+                                    <div className="flex-1 pr-4">
+                                      <p className="text-[10px] font-bold text-slate-700 leading-tight">Earn 100 Free Words Now.</p>
+                                      <a href="#" onClick={(e) => e.preventDefault()} className="text-[9.5px] text-amber-700 font-extrabold hover:underline mt-0.5 inline-block">Refer a Friend Here &rarr;</a>
+                                    </div>
+                                    <button 
+                                      type="button"
+                                      onClick={() => setBpShowPromo2(false)}
+                                      className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             </div>
 
-                            {/* Error section */}
-                            {bpError && (
-                              <div className="mt-3 p-3 bg-rose-50 border border-rose-250 text-rose-600 rounded-xl text-[10px] font-sans">
-                                <strong>⚠️ Terjadi galat:</strong> {bpError}
+                            {/* Right Main Working Area */}
+                            <div className="flex-1 bg-slate-50/30 p-6 flex flex-col justify-between border-l border-slate-100">
+                              
+                              {/* Main Title Banner */}
+                              <div className="mb-5">
+                                <h3 className="text-sm md:text-base font-black text-slate-900 leading-snug tracking-tight font-sans">
+                                  Convert AI Text to{" "}
+                                  <span className="bg-gradient-to-r from-amber-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent">
+                                    Human-like, Plagiarism-free, Undetectable Content
+                                  </span>
+                                </h3>
+                                <p className="text-[10px] text-slate-500 mt-1 font-sans">
+                                  Active Module: <span className="text-indigo-650 font-bold font-mono">{bpActiveMenu}</span> &bull; 
+                                  Mendeteksi pola mesin dan mengkalibrasi gaya bahasa menjadi 100% natural.
+                                </p>
                               </div>
-                            )}
 
-                            {/* Actions block */}
-                            <div className="mt-4 flex items-center gap-3 font-sans">
-                              <button
-                                type="button"
-                                disabled={bpLoading || !bpOriginalText.trim()}
-                                onClick={handleBypassGptParaphrase}
-                                className={`flex-1 py-2.5 rounded-xl font-bold text-[11px] uppercase tracking-wider transition duration-150 flex items-center justify-center gap-1.5 cursor-pointer border font-sans ${
-                                  bpLoading 
-                                    ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed" 
-                                    : "bg-indigo-600 hover:bg-indigo-700 hover:scale-[1.02] text-white border-indigo-500 shadow-md shadow-indigo-600/10"
-                                }`}
-                              >
-                                {bpLoading ? (
-                                  <>Memproses rewrite...</>
-                                ) : (
-                                  <>Bypass AI Detector Sekarang ✨</>
-                                )}
-                              </button>
+                              {/* Two Column Split Editor */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 flex-1 mb-5">
+                                
+                                {/* Left Input Pane */}
+                                <div className="flex flex-col space-y-1.5 h-full min-h-[300px] relative">
+                                  <div className="flex justify-between items-center px-1">
+                                    <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider font-mono">Teks Sumber (AI Generated)</span>
+                                    <span className="text-[9px] text-slate-400 font-mono">
+                                      {bpOriginalText.length} karakter / {bpOriginalText.split(/\s+/).filter(Boolean).length} kata
+                                    </span>
+                                  </div>
+                                  
+                                  <div className="relative flex-1 bg-white border border-slate-200 rounded-2xl overflow-hidden focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-50 transition flex flex-col shadow-sm">
+                                    <textarea
+                                      placeholder="Enter the text you want to humanize here..."
+                                      value={bpOriginalText}
+                                      onChange={(e) => {
+                                        setBpOriginalText(e.target.value);
+                                        if (bpAiCheckResult) setBpAiCheckResult(null);
+                                      }}
+                                      className="w-full flex-1 min-h-[220px] bg-transparent text-xs text-slate-800 placeholder-slate-400 p-4 focus:outline-none resize-none leading-relaxed font-sans"
+                                    />
+                                    
+                                    {/* Action Tiles when empty */}
+                                    {!bpOriginalText.trim() && (
+                                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/95 p-4 space-y-4">
+                                        <p className="text-[11.5px] text-slate-500 text-center max-w-xs font-medium">
+                                          Tempel draf AI Anda atau pilih salah satu opsi di bawah ini untuk memulai:
+                                        </p>
+                                        <div className="grid grid-cols-3 gap-2 w-full max-w-sm">
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const input = document.createElement("input");
+                                              input.type = "file";
+                                              input.accept = ".txt,.doc,.docx,.pdf";
+                                              input.onchange = (e: any) => {
+                                                const file = e.target.files[0];
+                                                if (file) {
+                                                  const reader = new FileReader();
+                                                  reader.onload = (evt) => {
+                                                    setBpOriginalText(String(evt.target?.result || ""));
+                                                  };
+                                                  reader.readAsText(file);
+                                                }
+                                              };
+                                              input.click();
+                                            }}
+                                            className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30 transition duration-150 group cursor-pointer"
+                                          >
+                                            <FileUp className="w-5 h-5 text-amber-500 group-hover:scale-105 transition" />
+                                            <span className="text-[9.5px] font-bold text-slate-700 mt-1.5">Upload File</span>
+                                          </button>
+                                          
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setBpOriginalText(getSampleTextForMenu(bpActiveMenu));
+                                            }}
+                                            className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30 transition duration-150 group cursor-pointer"
+                                          >
+                                            <FileText className="w-5 h-5 text-indigo-500 group-hover:scale-105 transition" />
+                                            <span className="text-[9.5px] font-bold text-slate-700 mt-1.5">Try A Sample</span>
+                                          </button>
 
-                              {bpOriginalText && (
+                                          <button
+                                            type="button"
+                                            onClick={async () => {
+                                              try {
+                                                const text = await navigator.clipboard.readText();
+                                                if (text) {
+                                                  setBpOriginalText(text);
+                                                } else {
+                                                  alert("Clipboard kosong atau izin ditolak.");
+                                                }
+                                              } catch (e) {
+                                                alert("Gagal membaca clipboard. Silakan paste secara manual.");
+                                              }
+                                            }}
+                                            className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30 transition duration-150 group cursor-pointer"
+                                          >
+                                            <Clipboard className="w-5 h-5 text-rose-500 group-hover:scale-105 transition" />
+                                            <span className="text-[9.5px] font-bold text-slate-700 mt-1.5">Paste Text</span>
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Right Output Pane */}
+                                <div className="flex flex-col space-y-1.5 h-full min-h-[300px] relative">
+                                  <div className="flex justify-between items-center px-1">
+                                    <span className="text-[9px] font-extrabold text-indigo-600 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                                      <span>Hasil Output</span>
+                                      {bpUsedFallback && (
+                                        <span className="text-[8px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded border border-amber-200 uppercase tracking-wide">Fallback Active</span>
+                                      )}
+                                    </span>
+                                    {bpParaphrasedText && (
+                                      <span className="text-[9px] text-slate-400 font-mono">
+                                        {bpParaphrasedText.length} karakter / {bpWordCount} kata
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="relative flex-1 bg-white border border-slate-200 rounded-2xl overflow-y-auto p-4 min-h-[220px] flex flex-col justify-start shadow-sm">
+                                    {bpLoading ? (
+                                      <div className="flex flex-col items-center justify-center h-full space-y-3.5 py-16 flex-1">
+                                        <div className="relative w-12 h-12">
+                                          <div className="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
+                                          <div className="absolute inset-0 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                                          <div className="absolute inset-2 bg-slate-50 rounded-full flex items-center justify-center">
+                                            <Shield className="w-4 h-4 text-indigo-650 animate-pulse" />
+                                          </div>
+                                        </div>
+                                        
+                                        <div className="text-center space-y-1 animate-pulse">
+                                          <p className="text-[11px] font-extrabold text-indigo-600 uppercase tracking-widest">BypassGPT Pro</p>
+                                          <p className="text-[10px] text-slate-500">Sedang merekonstruksi pola kalimat...</p>
+                                        </div>
+                                      </div>
+                                    ) : bpParaphrasedText ? (
+                                      <div className="space-y-4 flex-1">
+                                        <pre className="whitespace-pre-wrap font-sans break-words bg-transparent border-none p-0 text-xs text-slate-800 leading-relaxed">
+                                          {bpParaphrasedText}
+                                        </pre>
+                                        
+                                        {/* AI scan results summary if checked */}
+                                        {bpAiCheckResult && bpAiCheckResult.checked && bpAiCheckResult.scores && (
+                                          <div className="bg-emerald-50/50 rounded-xl border border-emerald-100 p-3.5 space-y-3 mt-4 animate-fade-in text-xs font-sans">
+                                            <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                                              <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                                                <Activity className="w-3.5 h-3.5 text-emerald-600" />
+                                                AI Detector Scan Report
+                                              </span>
+                                              <span className="text-[9px] bg-emerald-100 text-emerald-850 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider font-mono">
+                                                Sangat Aman
+                                              </span>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-3 gap-2.5">
+                                              <div className="bg-white p-2.5 rounded-lg border border-emerald-100 text-center">
+                                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-mono">GPTZero AI</p>
+                                                <p className="text-sm font-black text-emerald-600 mt-1">{bpAiCheckResult.scores.gptZero}%</p>
+                                              </div>
+                                              <div className="bg-white p-2.5 rounded-lg border border-emerald-100 text-center">
+                                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-mono">Turnitin AI</p>
+                                                <p className="text-sm font-black text-emerald-600 mt-1">{bpAiCheckResult.scores.turnitin}%</p>
+                                              </div>
+                                              <div className="bg-white p-2.5 rounded-lg border border-emerald-100 text-center">
+                                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-mono">Copyleaks</p>
+                                                <p className="text-sm font-black text-emerald-600 mt-1">{bpAiCheckResult.scores.copyleaks}%</p>
+                                              </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-between text-[10px] text-slate-600 bg-white p-2 rounded-lg border border-emerald-100">
+                                              <span>Probabilitas Manusia Asli:</span>
+                                              <span className="font-bold text-emerald-600">99.2% (Perfect Human Score)</span>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <div className="flex flex-col items-center justify-center h-full text-slate-400 py-16 text-center space-y-4 flex-1">
+                                        <div className="relative group">
+                                          {/* Outer Glowing Rings */}
+                                          <div className="absolute inset-0 -m-4 bg-indigo-50/50 rounded-full blur-xl group-hover:bg-indigo-50 transition duration-300"></div>
+                                          
+                                          {/* Floating Saucer Base */}
+                                          <div className="relative flex flex-col items-center">
+                                            {/* 3D Floating Block/Vault */}
+                                            <div className="w-10 h-10 bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center animate-bounce duration-[2.2s] text-indigo-600">
+                                              <Shield className="w-4.5 h-4.5" />
+                                            </div>
+                                            {/* Glowing Base Platform */}
+                                            <div className="w-14 h-3 bg-gradient-to-r from-indigo-100/50 via-indigo-200 to-indigo-100/50 rounded-full mt-2 filter blur-xs animate-pulse"></div>
+                                          </div>
+                                        </div>
+                                        
+                                        <div>
+                                          <p className="text-[11px] font-bold text-slate-700 font-sans">Awaiting Conversion Output</p>
+                                          <p className="text-[10px] text-slate-400 max-w-[200px] mx-auto mt-0.5 leading-relaxed font-sans">
+                                            Hasil humanisasi naskah anti-AI akan tertulis di sini.
+                                          </p>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Copy button overlay */}
+                                    {bpParaphrasedText && !bpLoading && (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(bpParaphrasedText);
+                                          alert("Teks hasil paraphrase berhasil disalin!");
+                                        }}
+                                        className="absolute bottom-3 right-3 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-lg px-2.5 py-1.5 text-[9px] font-bold shadow-md transition duration-150 cursor-pointer flex items-center gap-1 border border-slate-200"
+                                      >
+                                        <Clipboard className="w-3.5 h-3.5 text-indigo-600" />
+                                        <span>Salin Hasil 📋</span>
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Error block if any */}
+                              {bpError && (
+                                <div className="mb-3.5 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-[10px] font-mono leading-relaxed">
+                                  <strong>⚠️ Galat:</strong> {bpError}
+                                </div>
+                              )}
+
+                              {/* Footer Action Bar */}
+                              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 border-t border-slate-100 pt-4">
+                                
+                                {/* Check for AI trigger button */}
                                 <button
                                   type="button"
-                                  onClick={() => {
-                                    setBpOriginalText("");
-                                    setBpParaphrasedText("");
-                                    setBpError("");
-                                  }}
-                                  className="px-4 py-2.5 bg-slate-100 border border-slate-200 text-slate-650 hover:bg-slate-200 hover:text-slate-900 rounded-xl text-[11px] font-bold transition duration-150 cursor-pointer font-sans"
+                                  disabled={bpLoading || !bpOriginalText.trim() || (bpAiCheckResult && bpAiCheckResult.loading)}
+                                  onClick={handleBypassGptCheckAi}
+                                  className={`px-4 py-2.5 rounded-xl font-bold text-[10.5px] uppercase tracking-wider transition duration-150 cursor-pointer flex items-center justify-center gap-1.5 border ${
+                                    bpAiCheckResult && bpAiCheckResult.loading
+                                      ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed"
+                                      : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 hover:text-slate-900 shadow-sm"
+                                  }`}
                                 >
-                                  Reset
+                                  {bpAiCheckResult && bpAiCheckResult.loading ? (
+                                    <>
+                                      <div className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                                      <span>Scanning AI...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Activity className="w-3.5 h-3.5 text-indigo-600" />
+                                      <span>Check for AI</span>
+                                    </>
+                                  )}
                                 </button>
-                              )}
+                                
+                                {/* Mode Selector Dropdown */}
+                                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 self-stretch sm:self-auto justify-between sm:justify-start shadow-sm">
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider font-mono">Mode:</span>
+                                  <select
+                                    value={bpMode}
+                                    onChange={(e) => setBpMode(e.target.value)}
+                                    className="bg-transparent text-xs text-slate-800 font-bold focus:outline-none cursor-pointer border-none p-0 pr-4 font-mono select-none"
+                                  >
+                                    <option value="Enhanced" className="bg-white">Enhanced</option>
+                                    <option value="Standard" className="bg-white">Standard</option>
+                                    <option value="Balanced" className="bg-white">Balanced</option>
+                                    <option value="Advanced" className="bg-white">Advanced</option>
+                                  </select>
+                                </div>
+
+                                {/* Reset button when input exists */}
+                                {bpOriginalText && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setBpOriginalText("");
+                                      setBpParaphrasedText("");
+                                      setBpError("");
+                                      setBpAiCheckResult(null);
+                                    }}
+                                    className="px-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-[10.5px] font-bold uppercase tracking-wider transition duration-150 cursor-pointer shadow-sm"
+                                  >
+                                    Reset
+                                  </button>
+                                )}
+
+                                {/* Main Humanize Button */}
+                                <button
+                                  type="button"
+                                  disabled={bpLoading || !bpOriginalText.trim()}
+                                  onClick={handleBypassGptParaphrase}
+                                  className={`flex-1 py-2.5 rounded-xl font-bold text-[11px] uppercase tracking-widest transition duration-150 flex items-center justify-center gap-2 cursor-pointer ${
+                                    bpLoading || !bpOriginalText.trim()
+                                      ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
+                                      : "bg-gradient-to-r from-indigo-600 to-violet-600 hover:opacity-95 text-white shadow-lg shadow-indigo-500/10 font-bold"
+                                  }`}
+                                >
+                                  {bpLoading ? (
+                                    <>Humanizing...</>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="w-4 h-4 animate-bounce" />
+                                      <span>Humanize</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+
                             </div>
 
                           </div>

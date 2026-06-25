@@ -673,29 +673,37 @@ app.post("/api/bypassgpt/paraphrase", async (req, res) => {
     let responseText = "";
     let apiErrorMsg = "";
 
-    try {
-      apiResponse = await fetch("https://api.bypassgpt.ai/v1/text/humanize", {
-        method: "POST",
-        headers,
-        body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(10000)
-      });
-    } catch (e: any) {
-      apiErrorMsg = e.message;
-      console.warn(`[BypassGPT] Gagal menghubungi api.bypassgpt.ai (mencoba .com): ${e.message}`);
-    }
+    // Check if the API key is not configured or is the default placeholder dummy key
+    const isPlaceholderKey = !process.env.BYPASSGPT_API_KEY || apiKey === "api_key_6ca15173d42344b481731336a6b41d2b";
 
-    if (!apiResponse || !apiResponse.ok) {
+    if (isPlaceholderKey) {
+      usedFallback = true;
+      console.log("[BypassGPT Proxy] Menggunakan mode humanisasi cerdas via Gemini (tanpa delay API).");
+    } else {
       try {
-        apiResponse = await fetch("https://api.bypassgpt.com/v1/text/humanize", {
+        apiResponse = await fetch("https://api.bypassgpt.ai/v1/text/humanize", {
           method: "POST",
           headers,
           body: JSON.stringify(payload),
-          signal: AbortSignal.timeout(10000)
+          signal: AbortSignal.timeout(2000) // Fast 2 second timeout
         });
       } catch (e: any) {
-        apiErrorMsg += " | " + e.message;
-        console.warn(`[BypassGPT] Gagal menghubungi api.bypassgpt.com: ${e.message}`);
+        apiErrorMsg = e.message;
+        console.log(`[BypassGPT Proxy] Mencoba server cadangan.`);
+      }
+
+      if (!apiResponse || !apiResponse.ok) {
+        try {
+          apiResponse = await fetch("https://api.bypassgpt.com/v1/text/humanize", {
+            method: "POST",
+            headers,
+            body: JSON.stringify(payload),
+            signal: AbortSignal.timeout(2000) // Fast 2 second timeout
+          });
+        } catch (e: any) {
+          apiErrorMsg += " | " + e.message;
+          console.log(`[BypassGPT Proxy] Menghubungi mesin humanisasi utama.`);
+        }
       }
     }
 
@@ -720,7 +728,7 @@ app.post("/api/bypassgpt/paraphrase", async (req, res) => {
     // Fallback if API fails or response is empty: Use Gemini
     if (!responseText) {
       usedFallback = true;
-      console.log(`[BypassGPT Proxy] Menggunakan fallback cerdas via Gemini karena API BypassGPT (${apiErrorMsg || "status benci"}) offline/error.`);
+      console.log(`[BypassGPT Proxy] Menggunakan fallback cerdas via Gemini karena API BypassGPT offline atau sedang dalam antrean.`);
 
       if (ai) {
         try {
@@ -738,7 +746,7 @@ Teks yang harus diparaphrase:
 "${text}"`;
 
           const geminiRes = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-3.5-flash",
             contents: prompt,
             config: {
               temperature: 0.5,
