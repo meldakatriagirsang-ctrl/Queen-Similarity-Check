@@ -1,55 +1,45 @@
 {
-  "files": [
-    {
-      "id": "QSC-842911",
-      "title": "Peran Big Data dalam Analisis Kebijakan Kesehatan",
-      "filename": "Tesis_Melda_Kesehatan_Nusantara.pdf",
-      "fileSize": "1.85 MB",
-      "uploadDate": "05 Juni 2026",
-      "status": "Selesai",
-      "similarityPercent": 12,
-      "feedback": "Turnitin scan selesai. Hasil similarity: 12%.",
-      "ownerEmail": "meldakatriagirsang@gmail.com"
-    }
-  ],
+  "files": [],
   "customers": [
     {
+      "kreditSisa": 12,
+      "totalUploadHarianLimit": 20,
       "username": "melda_katria",
+      "role": "Pelanggan",
       "fullName": "Melda Katria Girsang",
+      "uploadHarianSisa": 19,
       "email": "meldakatriagirsang@gmail.com",
       "whatsapp": "0822-6185-8077",
-      "role": "Pelanggan",
-      "kreditSisa": 12,
-      "uploadHarianSisa": 19,
-      "totalUploadHarianLimit": 20
+      "resetToken": "6233cbafa27b801e43cddbca9806019c411f4c5e",
+      "resetTokenExpires": 1782387424394
     }
   ],
   "extraTools": [
     {
       "id": "tool-1",
-      "name": "Turnitin AI Detection Check",
       "description": "Mendeteksi secara mendalam persentase konten buatan AI (Artificial Intelligence) seperti ChatGPT/Claude.",
       "creditCost": 10,
+      "name": "Turnitin AI Detection Check",
       "isEnabled": false
     },
     {
       "id": "tool-2",
-      "name": "Paraphrase Premium Humanizer",
       "description": "Membantu parafrase otomatis naskah yang terindikasi plagiasi tinggi agar kembali bertenaga orisinal.",
+      "name": "Paraphrase Premium Humanizer",
       "creditCost": 15,
       "isEnabled": true
     },
     {
-      "id": "tool-3",
-      "name": "Express Grammar & Proofread Check",
-      "description": "Meneliti struktur kalimat dan tanda baca berstandar kompas publikasi Elsevier/Scopus.",
       "creditCost": 5,
-      "isEnabled": true
+      "name": "Express Grammar & Proofread Check",
+      "isEnabled": true,
+      "id": "tool-3",
+      "description": "Meneliti struktur kalimat dan tanda baca berstandar kompas publikasi Elsevier/Scopus."
     }
   ],
-  "adminAnnouncement": "Selamat datang di Queen Similarity Check! Semua pengecekan berkas menggunakan akun Turnitin Instruktur resmi (No-Repository / Bukti Kelas Instruktur). Dijamin aman, tidak terekam database turnitin global! Hubungi WhatsApp Admin untuk bantuan: 0822-6185-8077",
+  "adminAnnouncement": "Selamat datang di Queen Similarity Check! Semua pengecekan berkas menggunakan akun Turnitin Instruktur resmi (No-Repository). Dijamin aman, tidak terekam database turnitin global! Hubungi WhatsApp Admin untuk bantuan: 0822-6185-8077",
   "autoSimulationEnabled": false,
-  "turnitinPrice": "Rp5.000",
+  "turnitinPrice": "Rp3.000",
   "isUploadLocked": false,
-  "workingHours": "08.00 am - 09.00 pm • WITA"
+  "workingHours": "08.00 am - 09.00 pm • WIB"
 }
