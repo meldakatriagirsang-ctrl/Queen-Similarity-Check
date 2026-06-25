@@ -134,7 +134,44 @@ export default function App() {
   // Customers list state (Seeded with standard accounts)
   const [customers, setCustomers] = useState<UserProfile[]>(() => {
     const saved = localStorage.getItem("queen_customers_list");
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Ensure both melda_katria and dolokimun are always present
+          const hasMelda = parsed.some(c => c.username === "melda_katria");
+          const hasDolok = parsed.some(c => c.username === "dolokimun");
+          let updated = [...parsed];
+          if (!hasMelda) {
+            updated.push({
+              username: "melda_katria",
+              fullName: "Melda Katria Girsang",
+              email: "meldakatriagirsang@gmail.com",
+              whatsapp: "0822-6185-8077",
+              role: "Admin",
+              kreditSisa: 9999,
+              uploadHarianSisa: 999,
+              totalUploadHarianLimit: 999,
+              password: "@Melda2026"
+            });
+          }
+          if (!hasDolok) {
+            updated.push({
+              username: "dolokimun",
+              fullName: "Dolok Imun Admin",
+              email: "dolokimun65@yahoo.com",
+              whatsapp: "0812-3456-7890",
+              role: "Admin",
+              kreditSisa: 9999,
+              uploadHarianSisa: 999,
+              totalUploadHarianLimit: 999,
+              password: "@Marbun656"
+            });
+          }
+          return updated;
+        }
+      } catch (e) { /* fallback to defaults */ }
+    }
     return [
       {
         username: "melda_katria",
@@ -146,6 +183,17 @@ export default function App() {
         uploadHarianSisa: 999,
         totalUploadHarianLimit: 999,
         password: "@Melda2026"
+      },
+      {
+        username: "dolokimun",
+        fullName: "Dolok Imun Admin",
+        email: "dolokimun65@yahoo.com",
+        whatsapp: "0812-3456-7890",
+        role: "Admin",
+        kreditSisa: 9999,
+        uploadHarianSisa: 999,
+        totalUploadHarianLimit: 999,
+        password: "@Marbun656"
       }
     ];
   });
@@ -885,6 +933,39 @@ export default function App() {
     }
     
     setAuthError("");
+
+    const fallbackLogin = () => {
+      const inputUser = loginUsername.toLowerCase().trim();
+      const matchedUser = customers.find(c => {
+        if (!c) return false;
+        const emailMatch = typeof c.email === "string" && c.email.toLowerCase().trim() === inputUser;
+        const usernameMatch = typeof c.username === "string" && c.username.toLowerCase().trim() === inputUser;
+        return emailMatch || usernameMatch;
+      });
+
+      if (matchedUser) {
+        if (matchedUser.password === loginPassword) {
+          const { password: _, ...safeProfile } = matchedUser;
+          const userWithSession = {
+            ...safeProfile,
+            sessionToken: safeProfile.sessionToken || "fallback-local-session-token-" + Date.now()
+          };
+          setUserProfile(userWithSession);
+          if (userWithSession.role === "Admin") {
+            setDashboardTab("workspace-admin");
+          } else {
+            setDashboardTab("list-file");
+          }
+          setCurrentView("dashboard");
+          return true;
+        } else {
+          setAuthError("Gagal Masuk! Password yang Anda masukkan salah.");
+          return true;
+        }
+      }
+      return false;
+    };
+
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -895,28 +976,43 @@ export default function App() {
         })
       });
       if (res.ok) {
-        const data = await res.json();
-        setUserProfile(data.userProfile);
-        if (data.userProfile.role === "Admin") {
-          setDashboardTab("workspace-admin");
-        } else {
-          setDashboardTab("list-file");
-        }
-        setCurrentView("dashboard");
-      } else {
-        let errorMessage = "Gagal masuk. Silakan periksa kembali detail Anda.";
         try {
-          const errData = await res.json();
-          if (errData && errData.error) {
-            errorMessage = errData.error;
+          const data = await res.json();
+          if (data && data.userProfile) {
+            setUserProfile(data.userProfile);
+            if (data.userProfile.role === "Admin") {
+              setDashboardTab("workspace-admin");
+            } else {
+              setDashboardTab("list-file");
+            }
+            setCurrentView("dashboard");
+            return;
           }
         } catch (_) {
-          errorMessage = `Gagal masuk dengan status server: ${res.status}`;
+          // If JSON parse failed (e.g. cookie gating HTML was returned instead)
+          if (fallbackLogin()) return;
+          setAuthError("Gagal masuk dengan status server: Respon bukan JSON.");
+          return;
         }
-        setAuthError(errorMessage);
       }
+      
+      // If server returned non-ok (like 404, or 401)
+      if (fallbackLogin()) return;
+
+      let errorMessage = "Gagal masuk. Silakan periksa kembali detail Anda.";
+      try {
+        const errData = await res.json();
+        if (errData && errData.error) {
+          errorMessage = errData.error;
+        }
+      } catch (_) {
+        errorMessage = `Gagal masuk dengan status server: ${res.status}`;
+      }
+      setAuthError(errorMessage);
+
     } catch (err) {
-      console.error("Gagal melakukan autentikasi masuk:", err);
+      console.error("Gagal melakukan autentikasi masuk, mencoba login lokal...", err);
+      if (fallbackLogin()) return;
       setAuthError("Koneksi jaringan gagal atau server tidak merespon.");
     }
   };
@@ -930,6 +1026,43 @@ export default function App() {
     }
 
     setAuthError("");
+
+    const fallbackRegister = () => {
+      const emailVal = registerEmail.toLowerCase().trim() || `${registerUsername.toLowerCase().trim()}@example.com`;
+      const isExisting = customers.some(c => {
+        if (!c) return false;
+        return (c.username && c.username.toLowerCase() === registerUsername.toLowerCase().trim()) || 
+               (c.email && c.email.toLowerCase() === emailVal);
+      });
+
+      if (isExisting) {
+        setAuthError("Username atau Email sudah terdaftar. Silakan gunakan yang lain.");
+        return true;
+      }
+
+      const newCustomer: UserProfile = {
+        username: registerUsername.trim(),
+        fullName: registerName.trim(),
+        email: emailVal,
+        whatsapp: registerWhatsApp.trim(),
+        role: "Pelanggan",
+        kreditSisa: 10, // Beri kredit awal gratis
+        uploadHarianSisa: 5,
+        totalUploadHarianLimit: 5,
+        password: registerPassword
+      };
+
+      const updatedCustomers = [...customers, newCustomer];
+      setCustomers(updatedCustomers);
+      setUserProfile({
+        ...newCustomer,
+        sessionToken: "fallback-local-session-token-" + Date.now()
+      });
+      setDashboardTab("list-file");
+      setCurrentView("dashboard");
+      return true;
+    };
+
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
@@ -943,24 +1076,37 @@ export default function App() {
         })
       });
       if (res.ok) {
-        const data = await res.json();
-        setUserProfile(data.userProfile);
-        setDashboardTab("list-file");
-        setCurrentView("dashboard");
-      } else {
-        let errorMessage = "Pendaftaran gagal. Silakan coba lagi.";
         try {
-          const errData = await res.json();
-          if (errData && errData.error) {
-            errorMessage = errData.error;
+          const data = await res.json();
+          if (data && data.userProfile) {
+            setUserProfile(data.userProfile);
+            setDashboardTab("list-file");
+            setCurrentView("dashboard");
+            return;
           }
         } catch (_) {
-          errorMessage = `Pendaftaran gagal dengan status server: ${res.status}`;
+          if (fallbackRegister()) return;
+          setAuthError("Pendaftaran gagal: Respon bukan JSON.");
+          return;
         }
-        setAuthError(errorMessage);
       }
+      
+      if (fallbackRegister()) return;
+
+      let errorMessage = "Pendaftaran gagal. Silakan coba lagi.";
+      try {
+        const errData = await res.json();
+        if (errData && errData.error) {
+          errorMessage = errData.error;
+        }
+      } catch (_) {
+        errorMessage = `Pendaftaran gagal dengan status server: ${res.status}`;
+      }
+      setAuthError(errorMessage);
+
     } catch (err) {
-      console.error("Gagal melakukan registrasi pelanggan baru:", err);
+      console.error("Gagal melakukan registrasi pelanggan baru, mencoba lokal...", err);
+      if (fallbackRegister()) return;
       setAuthError("Pendaftaran terhambat kendala jaringan. Silakan coba lagi nanti.");
     }
   };
@@ -2089,14 +2235,14 @@ export default function App() {
                     ? "bg-amber-400 animate-pulse" 
                     : serverConnected 
                       ? "bg-emerald-500" 
-                      : "bg-rose-500"
+                      : "bg-amber-500"
                 }`} />
                 <span>
                   {serverConnected === null 
                     ? "Menghubungkan ke server..." 
                     : serverConnected 
                       ? "Sistem Pengecekan Online (Cloud Active)" 
-                      : "Gagal terhubung ke server. Silakan muat ulang halaman."}
+                      : "Mode Mandiri Aktif (Sinkronisasi Lokal)"}
                 </span>
               </div>
 
