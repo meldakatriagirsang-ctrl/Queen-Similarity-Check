@@ -2,38 +2,51 @@
   "files": [],
   "customers": [
     {
-      "kreditSisa": 12,
-      "totalUploadHarianLimit": 20,
-      "username": "melda_katria",
-      "role": "Pelanggan",
-      "fullName": "Melda Katria Girsang",
-      "uploadHarianSisa": 19,
-      "email": "meldakatriagirsang@gmail.com",
-      "whatsapp": "0822-6185-8077",
+      "resetTokenExpires": 1782387424394,
+      "kreditSisa": 9999,
       "resetToken": "6233cbafa27b801e43cddbca9806019c411f4c5e",
-      "resetTokenExpires": 1782387424394
+      "uploadHarianSisa": 999,
+      "role": "Admin",
+      "totalUploadHarianLimit": 999,
+      "email": "meldakatriagirsang@gmail.com",
+      "username": "melda_katria",
+      "fullName": "Melda Katria Girsang",
+      "whatsapp": "0822-6185-8077",
+      "password": "@Melda2026",
+      "sessionToken": "7b4ca4570e160f384cd70de294ebaded438ede457d05b274325388be285d0a59"
+    },
+    {
+      "username": "dolokimun",
+      "fullName": "Dolok Imun Admin",
+      "email": "dolokimun65@yahoo.com",
+      "whatsapp": "0812-3456-7890",
+      "role": "Admin",
+      "kreditSisa": 9999,
+      "uploadHarianSisa": 999,
+      "totalUploadHarianLimit": 999,
+      "password": "@Marbun656"
     }
   ],
   "extraTools": [
     {
-      "id": "tool-1",
-      "description": "Mendeteksi secara mendalam persentase konten buatan AI (Artificial Intelligence) seperti ChatGPT/Claude.",
       "creditCost": 10,
       "name": "Turnitin AI Detection Check",
-      "isEnabled": false
+      "isEnabled": false,
+      "id": "tool-1",
+      "description": "Mendeteksi secara mendalam persentase konten buatan AI (Artificial Intelligence) seperti ChatGPT/Claude."
     },
     {
-      "id": "tool-2",
       "description": "Membantu parafrase otomatis naskah yang terindikasi plagiasi tinggi agar kembali bertenaga orisinal.",
-      "name": "Paraphrase Premium Humanizer",
+      "id": "tool-2",
+      "isEnabled": true,
       "creditCost": 15,
-      "isEnabled": true
+      "name": "Paraphrase Premium Humanizer"
     },
     {
+      "id": "tool-3",
+      "isEnabled": true,
       "creditCost": 5,
       "name": "Express Grammar & Proofread Check",
-      "isEnabled": true,
-      "id": "tool-3",
       "description": "Meneliti struktur kalimat dan tanda baca berstandar kompas publikasi Elsevier/Scopus."
     }
   ],
