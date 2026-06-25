@@ -2,18 +2,18 @@
   "files": [],
   "customers": [
     {
-      "resetTokenExpires": 1782387424394,
-      "kreditSisa": 9999,
       "resetToken": "6233cbafa27b801e43cddbca9806019c411f4c5e",
+      "whatsapp": "0822-6185-8077",
       "uploadHarianSisa": 999,
+      "kreditSisa": 9999,
+      "resetTokenExpires": 1782387424394,
+      "username": "melda_katria",
+      "fullName": "Melda Katria Girsang",
       "role": "Admin",
       "totalUploadHarianLimit": 999,
       "email": "meldakatriagirsang@gmail.com",
-      "username": "melda_katria",
-      "fullName": "Melda Katria Girsang",
-      "whatsapp": "0822-6185-8077",
       "password": "@Melda2026",
-      "sessionToken": "cf3883dba34a59489209aaec7687787614b1f80af927daec3420652fc855d107"
+      "sessionToken": "ceebe9caec66e0e472626448af3869c85d94e297b7960a8ee2d0f1e899e4eb5d"
     },
     {
       "username": "dolokimun",
@@ -29,25 +29,25 @@
   ],
   "extraTools": [
     {
+      "description": "Mendeteksi secara mendalam persentase konten buatan AI (Artificial Intelligence) seperti ChatGPT/Claude.",
       "creditCost": 10,
-      "name": "Turnitin AI Detection Check",
       "isEnabled": false,
-      "id": "tool-1",
-      "description": "Mendeteksi secara mendalam persentase konten buatan AI (Artificial Intelligence) seperti ChatGPT/Claude."
+      "name": "Turnitin AI Detection Check",
+      "id": "tool-1"
     },
     {
       "description": "Membantu parafrase otomatis naskah yang terindikasi plagiasi tinggi agar kembali bertenaga orisinal.",
-      "id": "tool-2",
       "isEnabled": true,
       "creditCost": 15,
-      "name": "Paraphrase Premium Humanizer"
+      "name": "Paraphrase Premium Humanizer",
+      "id": "tool-2"
     },
     {
-      "id": "tool-3",
       "isEnabled": true,
       "creditCost": 5,
-      "name": "Express Grammar & Proofread Check",
-      "description": "Meneliti struktur kalimat dan tanda baca berstandar kompas publikasi Elsevier/Scopus."
+      "description": "Meneliti struktur kalimat dan tanda baca berstandar kompas publikasi Elsevier/Scopus.",
+      "id": "tool-3",
+      "name": "Express Grammar & Proofread Check"
     }
   ],
   "adminAnnouncement": "Selamat datang di Queen Similarity Check! Semua pengecekan berkas menggunakan akun Turnitin Instruktur resmi (No-Repository). Dijamin aman, tidak terekam database turnitin global! Hubungi WhatsApp Admin untuk bantuan: 0822-6185-8077",

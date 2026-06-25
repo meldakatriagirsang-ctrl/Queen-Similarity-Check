@@ -192,6 +192,7 @@ export default function App() {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resettingSystem, setResettingSystem] = useState(false);
+  const [serverConnected, setServerConnected] = useState<boolean | null>(null);
 
   // Forgot password and reset password state variables
   const [forgotEmail, setForgotEmail] = useState("");
@@ -612,8 +613,12 @@ export default function App() {
       if (res.ok) {
         const data = await res.json();
         updateClientStateWithData(data);
+        setServerConnected(true);
+      } else {
+        setServerConnected(false);
       }
     } catch (err) {
+      setServerConnected(false);
       // Gracefully handle periodic background refresh drops (e.g., during server restarts)
       console.warn("Gagal mengambil status dari database server (reconnecting):", err);
     }
@@ -2075,6 +2080,24 @@ export default function App() {
                     </button>
                   </p>
                 )}
+              </div>
+
+              {/* Server connection status badge */}
+              <div className="pt-2 flex justify-center items-center gap-1.5 text-[10px] text-slate-400 border-t border-slate-100/50">
+                <span className={`w-1.5 h-1.5 rounded-full inline-block ${
+                  serverConnected === null 
+                    ? "bg-amber-400 animate-pulse" 
+                    : serverConnected 
+                      ? "bg-emerald-500" 
+                      : "bg-rose-500"
+                }`} />
+                <span>
+                  {serverConnected === null 
+                    ? "Menghubungkan ke server..." 
+                    : serverConnected 
+                      ? "Sistem Pengecekan Online (Cloud Active)" 
+                      : "Gagal terhubung ke server. Silakan muat ulang halaman."}
+                </span>
               </div>
 
             </div>

@@ -4,7 +4,8 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import fs from "fs";
-import admin from "firebase-admin";
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 import multer from "multer";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
@@ -20,6 +21,16 @@ dotenv.config();
 
 const app = express();
 const PORT = 3000;
+
+// Request logging middleware for debugging API paths and status codes
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    console.log(`[HTTP] ${req.method} ${req.path} -> ${res.statusCode} (${duration}ms)`);
+  });
+  next();
+});
 
 // Enable trust proxy so Express correctly reads individual client IP addresses behind the Cloud Run container proxy
 app.set("trust proxy", 1);
@@ -51,25 +62,18 @@ if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
 
-// Initialize Firebase Admin SDK
+// Initialize Firebase Client SDK
 const firebaseConfigPath = path.join(process.cwd(), "firebase-applet-config.json");
 let db: any = null;
 
 if (fs.existsSync(firebaseConfigPath)) {
   try {
     const configData = JSON.parse(fs.readFileSync(firebaseConfigPath, "utf-8"));
-    admin.initializeApp({
-      projectId: configData.projectId
-    });
-    
-    if (configData.firestoreDatabaseId) {
-      db = admin.firestore(configData.firestoreDatabaseId);
-    } else {
-      db = admin.firestore();
-    }
-    console.log("Firebase Admin SDK successfully initialized on backend. Targeting database:", configData.firestoreDatabaseId || "(default)");
+    const firebaseApp = initializeApp(configData);
+    db = getFirestore(firebaseApp, configData.firestoreDatabaseId);
+    console.log("Firebase Client SDK successfully initialized on backend. Targeting database:", configData.firestoreDatabaseId || "(default)");
   } catch (err) {
-    console.error("Gagal inisialisasi Firebase Admin SDK di backend:", err);
+    console.error("Gagal inisialisasi Firebase Client SDK di backend:", err);
   }
 }
 
@@ -290,7 +294,7 @@ function saveState(state: AppState) {
         return;
       }
       Promise.all([
-        db.collection("app").doc("settings").set({
+        setDoc(doc(db, "app", "settings"), {
           adminAnnouncement: state.adminAnnouncement || "",
           autoSimulationEnabled: !!state.autoSimulationEnabled,
           extraTools: state.extraTools || [],
@@ -298,10 +302,10 @@ function saveState(state: AppState) {
           isUploadLocked: !!state.isUploadLocked,
           workingHours: state.workingHours || "08.00 am - 09.00 pm • WITA"
         }),
-        db.collection("app").doc("customers").set({
+        setDoc(doc(db, "app", "customers"), {
           customers: state.customers || []
         }),
-        db.collection("app").doc("files").set({
+        setDoc(doc(db, "app", "files"), {
           files: state.files || []
         })
       ]).then(() => {
@@ -322,18 +326,18 @@ async function syncFromFirestore(attempt = 1) {
     return;
   }
   try {
-    console.log(`Attempting to restore state from Cloud Firestore via Admin SDK (Attempt ${attempt}/5)...`);
+    console.log(`Attempting to restore state from Cloud Firestore via Client SDK (Attempt ${attempt}/5)...`);
     const [settingsSnap, customersSnap, filesSnap] = await Promise.all([
-      db.collection("app").doc("settings").get(),
-      db.collection("app").doc("customers").get(),
-      db.collection("app").doc("files").get()
+      getDoc(doc(db, "app", "settings")),
+      getDoc(doc(db, "app", "customers")),
+      getDoc(doc(db, "app", "files"))
     ]);
 
     const state = loadState();
     let hasUpdates = false;
 
-    // Use .exists for firebase-admin instead of .exists()
-    if (settingsSnap.exists) {
+    // Use .exists() for firebase client SDK instead of .exists
+    if (settingsSnap.exists()) {
       const data = settingsSnap.data();
       if (data) {
         if (data.adminAnnouncement !== undefined) state.adminAnnouncement = data.adminAnnouncement;
@@ -346,7 +350,7 @@ async function syncFromFirestore(attempt = 1) {
       }
     }
 
-    if (customersSnap.exists) {
+    if (customersSnap.exists()) {
       const data = customersSnap.data();
       if (data && data.customers && Array.isArray(data.customers)) {
         state.customers = enforceAdminProfiles(data.customers);
@@ -354,7 +358,7 @@ async function syncFromFirestore(attempt = 1) {
       }
     }
 
-    if (filesSnap.exists) {
+    if (filesSnap.exists()) {
       const data = filesSnap.data();
       if (data && data.files && Array.isArray(data.files)) {
         state.files = data.files;
@@ -366,7 +370,7 @@ async function syncFromFirestore(attempt = 1) {
       cachedInMemoryState = state;
       fs.writeFileSync(DB_FILE, JSON.stringify(state, null, 2), "utf-8");
       hasSuccessfullyRestoredFromFirestore = true;
-      console.log("Successfully restored and cached all settings + customers + files state from Cloud Firestore via Admin SDK!");
+      console.log("Successfully restored and cached all settings + customers + files state from Cloud Firestore via Client SDK!");
     } else {
       console.log("No existing documents in Firestore, writing initial state to cloud...");
       hasSuccessfullyRestoredFromFirestore = true;
