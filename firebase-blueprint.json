@@ -1,0 +1,63 @@
+{
+  "entities": {
+    "AppSettings": {
+      "title": "AppSettings",
+      "description": "System wide settings for the application",
+      "type": "object",
+      "properties": {
+        "adminAnnouncement": {
+          "type": "string"
+        },
+        "autoSimulationEnabled": {
+          "type": "boolean"
+        },
+        "extraTools": {
+          "type": "array"
+        },
+        "turnitinPrice": {
+          "type": "string"
+        },
+        "isUploadLocked": {
+          "type": "boolean"
+        },
+        "workingHours": {
+          "type": "string"
+        }
+      }
+    },
+    "AppCustomers": {
+      "title": "AppCustomers",
+      "description": "List of registration and balance records",
+      "type": "object",
+      "properties": {
+        "customers": {
+          "type": "array"
+        }
+      }
+    },
+    "AppFiles": {
+      "title": "AppFiles",
+      "description": "Metadata of checked files and scanned reports",
+      "type": "object",
+      "properties": {
+        "files": {
+          "type": "array"
+        }
+      }
+    }
+  },
+  "firestore": {
+    "app/settings": {
+      "schema": "AppSettings",
+      "description": "Global administrator configuration parameters"
+    },
+    "app/customers": {
+      "schema": "AppCustomers",
+      "description": "All customer account settings and credit balances"
+    },
+    "app/files": {
+      "schema": "AppFiles",
+      "description": "All academic files submitted for Turnitin checks"
+    }
+  }
+}
