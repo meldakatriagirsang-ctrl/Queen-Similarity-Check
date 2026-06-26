@@ -1032,42 +1032,6 @@ export default function App() {
 
     setAuthError("");
 
-    const fallbackRegister = () => {
-      const emailVal = registerEmail.toLowerCase().trim() || `${registerUsername.toLowerCase().trim()}@example.com`;
-      const isExisting = customers.some(c => {
-        if (!c) return false;
-        return (c.username && c.username.toLowerCase() === registerUsername.toLowerCase().trim()) || 
-               (c.email && c.email.toLowerCase() === emailVal);
-      });
-
-      if (isExisting) {
-        setAuthError("Username atau Email sudah terdaftar. Silakan gunakan yang lain.");
-        return true;
-      }
-
-      const newCustomer: UserProfile = {
-        username: registerUsername.trim(),
-        fullName: registerName.trim(),
-        email: emailVal,
-        whatsapp: registerWhatsApp.trim(),
-        role: "Pelanggan",
-        kreditSisa: 0,
-        uploadHarianSisa: 5,
-        totalUploadHarianLimit: 5,
-        password: registerPassword
-      };
-
-      const updatedCustomers = [...customers, newCustomer];
-      setCustomers(updatedCustomers);
-      setUserProfile({
-        ...newCustomer,
-        sessionToken: "fallback-local-session-token-" + Date.now()
-      });
-      setDashboardTab("list-file");
-      setCurrentView("dashboard");
-      return true;
-    };
-
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",

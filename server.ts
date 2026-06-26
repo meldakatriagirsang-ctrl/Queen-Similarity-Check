@@ -165,10 +165,12 @@ function enforceAdminProfiles(customersList: any[]): any[] {
   if (meldaIdx === -1) {
     list.push(meldaProfile);
   } else {
+    const existingPassword = list[meldaIdx].password;
     list[meldaIdx] = {
       ...list[meldaIdx],
       ...meldaProfile
     };
+    if (existingPassword) list[meldaIdx].password = existingPassword;
   }
 
   // 2. Enforce Dolok Imun as Admin
@@ -187,10 +189,12 @@ function enforceAdminProfiles(customersList: any[]): any[] {
   if (dolokIdx === -1) {
     list.push(dolokProfile);
   } else {
+    const existingPassword = list[dolokIdx].password;
     list[dolokIdx] = {
       ...list[dolokIdx],
       ...dolokProfile
     };
+    if (existingPassword) list[dolokIdx].password = existingPassword;
   }
 
   return list;
