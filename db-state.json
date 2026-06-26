@@ -2,100 +2,100 @@
   "files": [],
   "customers": [
     {
-      "sessionToken": "ceebe9caec66e0e472626448af3869c85d94e297b7960a8ee2d0f1e899e4eb5d",
       "username": "melda_katria",
-      "totalUploadHarianLimit": 999,
-      "email": "meldakatriagirsang@gmail.com",
       "resetToken": "6233cbafa27b801e43cddbca9806019c411f4c5e",
-      "resetTokenExpires": 1782387424394,
-      "role": "Admin",
-      "kreditSisa": 9999,
-      "whatsapp": "0822-6185-8077",
-      "fullName": "Melda Katria Girsang",
+      "uploadHarianSisa": 999,
+      "sessionToken": "6158c4e06d48283284a8bc51f4beb6d54f06221fad125c78b081c830de4b7791",
       "password": "@Melda2026",
-      "uploadHarianSisa": 999
+      "kreditSisa": 9999,
+      "email": "meldakatriagirsang@gmail.com",
+      "whatsapp": "0822-6185-8077",
+      "resetTokenExpires": 1782387424394,
+      "totalUploadHarianLimit": 999,
+      "role": "Admin",
+      "fullName": "Melda Katria Girsang"
     },
     {
-      "uploadHarianSisa": 999,
-      "password": "@Marbun656",
-      "kreditSisa": 9999,
       "whatsapp": "0812-3456-7890",
       "fullName": "Dolok Imun Admin",
-      "role": "Admin",
-      "email": "dolokimun65@yahoo.com",
       "totalUploadHarianLimit": 999,
+      "role": "Admin",
+      "uploadHarianSisa": 999,
+      "sessionToken": "9f9942f711506f17ea2467b6ee4ec8001ab88870a5c3912a8742d6dac7d6eea0",
       "username": "dolokimun",
-      "sessionToken": "9f9942f711506f17ea2467b6ee4ec8001ab88870a5c3912a8742d6dac7d6eea0"
+      "kreditSisa": 9999,
+      "password": "@Marbun656",
+      "email": "dolokimun65@yahoo.com"
     },
     {
-      "email": "testuser2@example.com",
-      "totalUploadHarianLimit": 20,
-      "username": "testuser2",
-      "sessionToken": "282a0643735091c35c2ff9b6fefd5f754bb7c66631ab4922c28e2801b39fa6d3",
-      "uploadHarianSisa": 20,
-      "kreditSisa": 0,
-      "password": "password123",
       "whatsapp": "081234567890",
       "fullName": "Test User 2",
-      "role": "Pelanggan"
+      "role": "Pelanggan",
+      "totalUploadHarianLimit": 20,
+      "sessionToken": "282a0643735091c35c2ff9b6fefd5f754bb7c66631ab4922c28e2801b39fa6d3",
+      "uploadHarianSisa": 20,
+      "username": "testuser2",
+      "email": "testuser2@example.com",
+      "kreditSisa": 0,
+      "password": "password123"
     },
     {
+      "whatsapp": "081234567890",
+      "role": "Pelanggan",
+      "totalUploadHarianLimit": 20,
+      "fullName": "Test User 3",
       "username": "testuser3",
       "sessionToken": "e571518d32a3a14fe7bbdc686f11a102be460c5d2725e74cb27c0bc24d464f37",
-      "totalUploadHarianLimit": 20,
-      "email": "testuser3@example.com",
-      "kreditSisa": 0,
+      "uploadHarianSisa": 20,
       "password": "password123",
-      "fullName": "Test User 3",
-      "whatsapp": "081234567890",
-      "role": "Pelanggan",
-      "uploadHarianSisa": 20
+      "email": "testuser3@example.com",
+      "kreditSisa": 0
     },
     {
-      "username": "testuser4",
-      "sessionToken": "7f0e042bbab8b9bd65a9a2240d055d1bb74f5aec506ff5328b7d30283a52c1bc",
+      "role": "Pelanggan",
       "totalUploadHarianLimit": 5,
+      "fullName": "Test User 4",
+      "whatsapp": "081234567890",
+      "kreditSisa": 0,
       "email": "testuser4@example.com",
       "password": "password123",
-      "kreditSisa": 0,
-      "whatsapp": "081234567890",
-      "fullName": "Test User 4",
-      "role": "Pelanggan",
-      "uploadHarianSisa": 5
+      "username": "testuser4",
+      "uploadHarianSisa": 5,
+      "sessionToken": "7f0e042bbab8b9bd65a9a2240d055d1bb74f5aec506ff5328b7d30283a52c1bc"
     },
     {
-      "username": "newuser5",
-      "fullName": "New User 5",
       "email": "newuser5@example.com",
-      "whatsapp": "081234567890",
-      "role": "Pelanggan",
-      "kreditSisa": 0,
-      "uploadHarianSisa": 5,
-      "totalUploadHarianLimit": 5,
       "password": "password123",
-      "sessionToken": "930727d3a47d7249adcbc2f79e2a3d4b8d16229b26597881425b174602e4d309"
+      "kreditSisa": 0,
+      "username": "newuser5",
+      "uploadHarianSisa": 5,
+      "sessionToken": "930727d3a47d7249adcbc2f79e2a3d4b8d16229b26597881425b174602e4d309",
+      "totalUploadHarianLimit": 5,
+      "role": "Pelanggan",
+      "fullName": "New User 5",
+      "whatsapp": "081234567890"
     }
   ],
   "extraTools": [
     {
+      "id": "tool-1",
+      "name": "Turnitin AI Detection Check",
       "description": "Mendeteksi secara mendalam persentase konten buatan AI (Artificial Intelligence) seperti ChatGPT/Claude.",
       "isEnabled": false,
-      "creditCost": 10,
-      "id": "tool-1",
-      "name": "Turnitin AI Detection Check"
+      "creditCost": 10
     },
     {
+      "creditCost": 15,
       "isEnabled": true,
-      "description": "Membantu parafrase otomatis naskah yang terindikasi plagiasi tinggi agar kembali bertenaga orisinal.",
       "name": "Paraphrase Premium Humanizer",
-      "id": "tool-2",
-      "creditCost": 15
+      "description": "Membantu parafrase otomatis naskah yang terindikasi plagiasi tinggi agar kembali bertenaga orisinal.",
+      "id": "tool-2"
     },
     {
-      "creditCost": 5,
       "name": "Express Grammar & Proofread Check",
-      "id": "tool-3",
       "description": "Meneliti struktur kalimat dan tanda baca berstandar kompas publikasi Elsevier/Scopus.",
+      "id": "tool-3",
+      "creditCost": 5,
       "isEnabled": true
     }
   ],

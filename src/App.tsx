@@ -945,38 +945,6 @@ export default function App() {
     
     setAuthError("");
 
-    const fallbackLogin = () => {
-      const inputUser = loginUsername.toLowerCase().trim();
-      const matchedUser = customers.find(c => {
-        if (!c) return false;
-        const emailMatch = typeof c.email === "string" && c.email.toLowerCase().trim() === inputUser;
-        const usernameMatch = typeof c.username === "string" && c.username.toLowerCase().trim() === inputUser;
-        return emailMatch || usernameMatch;
-      });
-
-      if (matchedUser) {
-        if (matchedUser.password === loginPassword) {
-          const { password: _, ...safeProfile } = matchedUser;
-          const userWithSession = {
-            ...safeProfile,
-            sessionToken: safeProfile.sessionToken || "fallback-local-session-token-" + Date.now()
-          };
-          setUserProfile(userWithSession);
-          if (userWithSession.role === "Admin") {
-            setDashboardTab("workspace-admin");
-          } else {
-            setDashboardTab("list-file");
-          }
-          setCurrentView("dashboard");
-          return true;
-        } else {
-          setAuthError("Gagal Masuk! Password yang Anda masukkan salah.");
-          return true;
-        }
-      }
-      return false;
-    };
-
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
