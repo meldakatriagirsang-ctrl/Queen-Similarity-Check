@@ -1010,8 +1010,8 @@ export default function App() {
         }
       }
 
-      // If we reach here and the server responded with 5xx, try local fallback login.
-      if (res.status >= 500) {
+      // If we reach here and the server responded with any error, try local fallback login first.
+      if (!res.ok) {
         if (fallbackLogin()) {
           return;
         }
