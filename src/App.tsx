@@ -604,30 +604,26 @@ export default function App() {
   };
 
   // Keep track of notified file IDs using Ref initialized from localStorage to prevent duplicate sound triggers on page reloads
-  const seenFileIdsRef = React.useRef<string[]>([]);
-  useEffect(() => {
+  const initialSeenFileIds = (() => {
     try {
       const saved = localStorage.getItem("queen_seen_file_ids_v3");
-      if (saved) {
-        seenFileIdsRef.current = JSON.parse(saved);
-      }
+      return saved ? (JSON.parse(saved) as string[]) : [];
     } catch {
-      // ignore
+      return [];
     }
-  }, []);
+  })();
+  const seenFileIdsRef = React.useRef<string[]>(initialSeenFileIds);
 
   // Keep track of notified customer emails using Ref initialized from localStorage to prevent duplicate sound triggers on page reloads
-  const seenCustomerEmailsRef = React.useRef<string[]>([]);
-  useEffect(() => {
+  const initialSeenCustomerEmails = (() => {
     try {
       const saved = localStorage.getItem("queen_seen_customer_emails_v3");
-      if (saved) {
-        seenCustomerEmailsRef.current = JSON.parse(saved);
-      }
+      return saved ? (JSON.parse(saved) as string[]) : [];
     } catch {
-      // ignore
+      return [];
     }
-  }, []);
+  })();
+  const seenCustomerEmailsRef = React.useRef<string[]>(initialSeenCustomerEmails);
 
   // Check for resetToken in the URL to trigger the reset password view
   useEffect(() => {

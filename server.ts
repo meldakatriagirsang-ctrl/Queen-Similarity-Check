@@ -320,6 +320,43 @@ function saveState(state: AppState) {
   }
 }
 
+
+function mergeCustomers(localList: any[], remoteList: any[]): any[] {
+  const merged = [...localList];
+  remoteList.forEach(remote => {
+    if (!remote || !remote.email) return;
+    const idx = merged.findIndex(c => c && c.email && c.email.toLowerCase() === remote.email.toLowerCase());
+    if (idx !== -1) {
+      merged[idx] = {
+        ...merged[idx],
+        ...remote,
+        password: remote.password || merged[idx].password,
+        sessionToken: remote.sessionToken || merged[idx].sessionToken
+      };
+    } else {
+      merged.push(remote);
+    }
+  });
+  return enforceAdminProfiles(merged);
+}
+
+function mergeFiles(localList: any[], remoteList: any[]): any[] {
+  const merged = [...localList];
+  remoteList.forEach(remote => {
+    if (!remote || !remote.id) return;
+    const idx = merged.findIndex(f => f && f.id === remote.id);
+    if (idx !== -1) {
+      merged[idx] = {
+        ...merged[idx],
+        ...remote
+      };
+    } else {
+      merged.push(remote);
+    }
+  });
+  return merged;
+}
+
 async function syncFromFirestore(attempt = 1) {
   if (!db) {
     console.log("Firebase DB not initialized, skipping Cloud Firestore database restore.");
@@ -354,7 +391,7 @@ async function syncFromFirestore(attempt = 1) {
     if (customersSnap.exists()) {
       const data = customersSnap.data();
       if (data && data.customers && Array.isArray(data.customers)) {
-        state.customers = enforceAdminProfiles(data.customers);
+        state.customers = mergeCustomers(state.customers, data.customers);
         hasUpdates = true;
       }
     }
@@ -362,7 +399,7 @@ async function syncFromFirestore(attempt = 1) {
     if (filesSnap.exists()) {
       const data = filesSnap.data();
       if (data && data.files && Array.isArray(data.files)) {
-        state.files = data.files;
+        state.files = mergeFiles(state.files, data.files);
         hasUpdates = true;
       }
     }
@@ -372,6 +409,8 @@ async function syncFromFirestore(attempt = 1) {
       fs.writeFileSync(DB_FILE, JSON.stringify(state, null, 2), "utf-8");
       hasSuccessfullyRestoredFromFirestore = true;
       console.log("Successfully restored and cached all settings + customers + files state from Cloud Firestore via Client SDK!");
+      // After merging, save back to cloud to guarantee synchronization!
+      saveState(state);
     } else {
       console.log("No existing documents in Firestore, writing initial state to cloud...");
       hasSuccessfullyRestoredFromFirestore = true;
