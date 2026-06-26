@@ -552,6 +552,57 @@ export default function App() {
     }
   };
 
+  const playRegistrationSound = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      
+      if (ctx.state === "suspended") {
+        ctx.resume();
+      }
+
+      const playNote = (time: number, freq1: number, freq2: number, duration: number, volume: number = 0.85) => {
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = "sine";
+        osc1.frequency.setValueAtTime(freq1, time);
+        
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = "triangle";
+        osc2.frequency.setValueAtTime(freq2, time);
+
+        gain1.gain.setValueAtTime(0, time);
+        gain1.gain.linearRampToValueAtTime(volume * 0.45, time + 0.05);
+        gain1.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+        gain2.gain.setValueAtTime(0, time);
+        gain2.gain.linearRampToValueAtTime(volume * 0.45, time + 0.05);
+        gain2.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+
+        osc1.start(time);
+        osc1.stop(time + duration);
+        osc2.start(time);
+        osc2.stop(time + duration);
+      };
+
+      const now = ctx.currentTime;
+      // Elegant ascending chime to signal new user registration
+      playNote(now, 523.25, 1046.50, 0.4, 0.9); // C5 + C6
+      playNote(now + 0.15, 659.25, 1318.51, 0.4, 0.9); // E5 + E6
+      playNote(now + 0.30, 783.99, 1567.98, 0.4, 0.9); // G5 + G6
+      playNote(now + 0.45, 1046.50, 2093.00, 0.6, 0.9); // C6 + C7
+    } catch (err) {
+      console.error("Gagal memutar suara registrasi:", err);
+    }
+  };
+
   // Keep track of notified file IDs using Ref initialized from localStorage to prevent duplicate sound triggers on page reloads
   const seenFileIdsRef = React.useRef<string[]>([]);
   useEffect(() => {
@@ -559,6 +610,19 @@ export default function App() {
       const saved = localStorage.getItem("queen_seen_file_ids_v3");
       if (saved) {
         seenFileIdsRef.current = JSON.parse(saved);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Keep track of notified customer emails using Ref initialized from localStorage to prevent duplicate sound triggers on page reloads
+  const seenCustomerEmailsRef = React.useRef<string[]>([]);
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("queen_seen_customer_emails_v3");
+      if (saved) {
+        seenCustomerEmailsRef.current = JSON.parse(saved);
       }
     } catch {
       // ignore
@@ -616,12 +680,45 @@ export default function App() {
       });
     }
     if (data.customers) {
-      setCustomers(data.customers);
+      setCustomers((prevCustomers) => {
+        if (userProfile.role === "Admin") {
+          const currentEmails = data.customers.map((c: any) => c && c.email ? c.email.toLowerCase().trim() : "").filter(Boolean);
+          const seenEmails = seenCustomerEmailsRef.current;
+          
+          if (seenEmails.length === 0) {
+            // Initialize seen list silently the first time so we do not alert historical registrations
+            seenCustomerEmailsRef.current = currentEmails;
+            try {
+              localStorage.setItem("queen_seen_customer_emails_v3", JSON.stringify(currentEmails));
+            } catch (e) { /* ignore */ }
+          } else {
+            // Filter out any newly registered customers (exclude Admins)
+            const unseenCustomers = data.customers.filter((c: any) => {
+              if (!c || !c.email) return false;
+              const emailLower = c.email.toLowerCase().trim();
+              return !seenEmails.includes(emailLower) && c.role !== "Admin";
+            });
+            
+            if (unseenCustomers.length > 0) {
+              const updatedSeen = Array.from(new Set([...seenEmails, ...currentEmails]));
+              seenCustomerEmailsRef.current = updatedSeen;
+              try {
+                localStorage.setItem("queen_seen_customer_emails_v3", JSON.stringify(updatedSeen));
+              } catch (e) { /* ignore */ }
+              
+              if (adminSoundEnabled) {
+                playRegistrationSound();
+              }
+            }
+          }
+        }
+        return data.customers;
+      });
       
       // Sync currently logged-in user profile with values in customers database
       const myEmail = userProfile.email;
       if (myEmail && userProfile.role === "Pelanggan") {
-        const updatedProfileObj = data.customers.find((c: any) => c.email.toLowerCase() === myEmail.toLowerCase());
+        const updatedProfileObj = data.customers.find((c: any) => c && c.email && c.email.toLowerCase() === myEmail.toLowerCase());
         if (updatedProfileObj) {
           setUserProfile(prev => ({
             ...prev,
@@ -3765,8 +3862,16 @@ export default function App() {
                                 <button
                                   onClick={playNotificationSound}
                                   className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-350 font-bold text-[10px] rounded-md transition flex items-center justify-center cursor-pointer border border-slate-700/60"
+                                  title="Test suara alarm upload file baru"
                                 >
-                                  🔊 Test
+                                  🔊 Test File
+                                </button>
+                                <button
+                                  onClick={playRegistrationSound}
+                                  className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-350 font-bold text-[10px] rounded-md transition flex items-center justify-center cursor-pointer border border-slate-700/60"
+                                  title="Test suara alarm pendaftaran pengguna baru"
+                                >
+                                  🔔 Test Regis
                                 </button>
                               </div>
                             </div>
