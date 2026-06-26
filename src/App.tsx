@@ -1057,7 +1057,7 @@ export default function App() {
         email: emailVal,
         whatsapp: registerWhatsApp.trim(),
         role: "Pelanggan",
-        kreditSisa: 10, // Beri kredit awal gratis
+        kreditSisa: 0,
         uploadHarianSisa: 5,
         totalUploadHarianLimit: 5,
         password: registerPassword
@@ -1091,6 +1091,7 @@ export default function App() {
           const data = await res.json();
           if (data && data.userProfile) {
             setUserProfile(data.userProfile);
+            setCustomers(prev => [...prev, data.userProfile]);
             setDashboardTab("list-file");
             setCurrentView("dashboard");
             return;
