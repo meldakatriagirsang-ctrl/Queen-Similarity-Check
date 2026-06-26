@@ -1006,9 +1006,6 @@ export default function App() {
           return;
         }
       }
-      
-      // If server returned non-ok (like 404, or 401)
-      if (fallbackLogin()) return;
 
       let errorMessage = "Gagal masuk. Silakan periksa kembali detail Anda.";
       try {
@@ -1102,8 +1099,6 @@ export default function App() {
           return;
         }
       }
-      
-      if (fallbackRegister()) return;
 
       let errorMessage = "Pendaftaran gagal. Silakan coba lagi.";
       try {

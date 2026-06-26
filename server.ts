@@ -1064,8 +1064,8 @@ app.post("/api/auth/register", authLimiter, (req, res) => {
     whatsapp,
     role: "Pelanggan",
     kreditSisa: 0,
-    uploadHarianSisa: 20,
-    totalUploadHarianLimit: 20,
+    uploadHarianSisa: 5,
+    totalUploadHarianLimit: 5,
     password,
     sessionToken: token
   };

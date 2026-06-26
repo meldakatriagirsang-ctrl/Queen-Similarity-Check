@@ -2,53 +2,77 @@
   "files": [],
   "customers": [
     {
-      "password": "@Melda2026",
+      "username": "melda_katria",
       "sessionToken": "ceebe9caec66e0e472626448af3869c85d94e297b7960a8ee2d0f1e899e4eb5d",
-      "resetTokenExpires": 1782387424394,
-      "whatsapp": "0822-6185-8077",
+      "totalUploadHarianLimit": 999,
+      "resetToken": "6233cbafa27b801e43cddbca9806019c411f4c5e",
       "email": "meldakatriagirsang@gmail.com",
       "fullName": "Melda Katria Girsang",
-      "role": "Admin",
-      "username": "melda_katria",
+      "whatsapp": "0822-6185-8077",
+      "password": "@Melda2026",
       "kreditSisa": 9999,
-      "uploadHarianSisa": 999,
-      "totalUploadHarianLimit": 999,
-      "resetToken": "6233cbafa27b801e43cddbca9806019c411f4c5e"
+      "role": "Admin",
+      "resetTokenExpires": 1782387424394,
+      "uploadHarianSisa": 999
     },
     {
-      "username": "dolokimun",
+      "email": "dolokimun65@yahoo.com",
       "totalUploadHarianLimit": 999,
+      "username": "dolokimun",
+      "sessionToken": "9f9942f711506f17ea2467b6ee4ec8001ab88870a5c3912a8742d6dac7d6eea0",
       "uploadHarianSisa": 999,
+      "password": "@Marbun656",
+      "whatsapp": "0812-3456-7890",
       "kreditSisa": 9999,
       "fullName": "Dolok Imun Admin",
-      "role": "Admin",
-      "whatsapp": "0812-3456-7890",
-      "email": "dolokimun65@yahoo.com",
-      "password": "@Marbun656",
-      "sessionToken": "9f9942f711506f17ea2467b6ee4ec8001ab88870a5c3912a8742d6dac7d6eea0"
+      "role": "Admin"
+    },
+    {
+      "username": "testuser2",
+      "fullName": "Test User 2",
+      "email": "testuser2@example.com",
+      "whatsapp": "081234567890",
+      "role": "Pelanggan",
+      "kreditSisa": 0,
+      "uploadHarianSisa": 20,
+      "totalUploadHarianLimit": 20,
+      "password": "password123",
+      "sessionToken": "282a0643735091c35c2ff9b6fefd5f754bb7c66631ab4922c28e2801b39fa6d3"
+    },
+    {
+      "username": "testuser3",
+      "fullName": "Test User 3",
+      "email": "testuser3@example.com",
+      "whatsapp": "081234567890",
+      "role": "Pelanggan",
+      "kreditSisa": 0,
+      "uploadHarianSisa": 20,
+      "totalUploadHarianLimit": 20,
+      "password": "password123",
+      "sessionToken": "e8b3287a7c192f681baa27f1867dd427c34af00b9a6c6ffceb931a31e9cd8251"
     }
   ],
   "extraTools": [
     {
-      "description": "Mendeteksi secara mendalam persentase konten buatan AI (Artificial Intelligence) seperti ChatGPT/Claude.",
-      "name": "Turnitin AI Detection Check",
       "creditCost": 10,
-      "isEnabled": false,
-      "id": "tool-1"
+      "id": "tool-1",
+      "name": "Turnitin AI Detection Check",
+      "description": "Mendeteksi secara mendalam persentase konten buatan AI (Artificial Intelligence) seperti ChatGPT/Claude.",
+      "isEnabled": false
     },
     {
-      "isEnabled": true,
-      "id": "tool-2",
       "description": "Membantu parafrase otomatis naskah yang terindikasi plagiasi tinggi agar kembali bertenaga orisinal.",
+      "isEnabled": true,
       "creditCost": 15,
+      "id": "tool-2",
       "name": "Paraphrase Premium Humanizer"
     },
     {
-      "id": "tool-3",
+      "description": "Meneliti struktur kalimat dan tanda baca berstandar kompas publikasi Elsevier/Scopus.",
       "isEnabled": true,
       "creditCost": 5,
       "name": "Express Grammar & Proofread Check",
-      "description": "Meneliti struktur kalimat dan tanda baca berstandar kompas publikasi Elsevier/Scopus."
+      "id": "tool-3"
     }
   ],
   "adminAnnouncement": "Selamat datang di Queen Similarity Check! Semua pengecekan berkas menggunakan akun Turnitin Instruktur resmi (No-Repository). Dijamin aman, tidak terekam database turnitin global! Hubungi WhatsApp Admin untuk bantuan: 0822-6185-8077",
