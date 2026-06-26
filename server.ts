@@ -995,6 +995,7 @@ async function sendResetEmail(email: string, resetLink: string, fullName: string
 }
 
 app.post("/api/auth/login", authLimiter, (req, res) => {
+  console.log("Login attempt received:", req.body.username);
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).json({ error: "Username/email dan password wajib diisi." });
