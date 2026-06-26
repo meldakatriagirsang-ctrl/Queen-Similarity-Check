@@ -2,70 +2,82 @@
   "files": [],
   "customers": [
     {
-      "username": "melda_katria",
-      "sessionToken": "ceebe9caec66e0e472626448af3869c85d94e297b7960a8ee2d0f1e899e4eb5d",
-      "totalUploadHarianLimit": 999,
-      "resetToken": "6233cbafa27b801e43cddbca9806019c411f4c5e",
-      "email": "meldakatriagirsang@gmail.com",
-      "fullName": "Melda Katria Girsang",
       "whatsapp": "0822-6185-8077",
-      "password": "@Melda2026",
+      "resetToken": "6233cbafa27b801e43cddbca9806019c411f4c5e",
+      "uploadHarianSisa": 999,
       "kreditSisa": 9999,
-      "role": "Admin",
+      "fullName": "Melda Katria Girsang",
       "resetTokenExpires": 1782387424394,
-      "uploadHarianSisa": 999
+      "username": "melda_katria",
+      "role": "Admin",
+      "totalUploadHarianLimit": 999,
+      "password": "@Melda2026",
+      "sessionToken": "ceebe9caec66e0e472626448af3869c85d94e297b7960a8ee2d0f1e899e4eb5d",
+      "email": "meldakatriagirsang@gmail.com"
     },
     {
       "email": "dolokimun65@yahoo.com",
-      "totalUploadHarianLimit": 999,
-      "username": "dolokimun",
-      "sessionToken": "9f9942f711506f17ea2467b6ee4ec8001ab88870a5c3912a8742d6dac7d6eea0",
-      "uploadHarianSisa": 999,
       "password": "@Marbun656",
+      "totalUploadHarianLimit": 999,
+      "sessionToken": "9f9942f711506f17ea2467b6ee4ec8001ab88870a5c3912a8742d6dac7d6eea0",
+      "fullName": "Dolok Imun Admin",
+      "username": "dolokimun",
+      "role": "Admin",
       "whatsapp": "0812-3456-7890",
       "kreditSisa": 9999,
-      "fullName": "Dolok Imun Admin",
-      "role": "Admin"
+      "uploadHarianSisa": 999
     },
     {
-      "username": "testuser2",
-      "fullName": "Test User 2",
+      "totalUploadHarianLimit": 20,
+      "password": "password123",
+      "sessionToken": "282a0643735091c35c2ff9b6fefd5f754bb7c66631ab4922c28e2801b39fa6d3",
       "email": "testuser2@example.com",
       "whatsapp": "081234567890",
-      "role": "Pelanggan",
       "kreditSisa": 0,
       "uploadHarianSisa": 20,
-      "totalUploadHarianLimit": 20,
-      "password": "password123",
-      "sessionToken": "282a0643735091c35c2ff9b6fefd5f754bb7c66631ab4922c28e2801b39fa6d3"
+      "username": "testuser2",
+      "fullName": "Test User 2",
+      "role": "Pelanggan"
     },
     {
-      "username": "testuser3",
       "fullName": "Test User 3",
+      "username": "testuser3",
+      "role": "Pelanggan",
+      "whatsapp": "081234567890",
+      "uploadHarianSisa": 20,
+      "kreditSisa": 0,
       "email": "testuser3@example.com",
+      "password": "password123",
+      "totalUploadHarianLimit": 20,
+      "sessionToken": "e571518d32a3a14fe7bbdc686f11a102be460c5d2725e74cb27c0bc24d464f37"
+    },
+    {
+      "username": "testuser4",
+      "fullName": "Test User 4",
+      "email": "testuser4@example.com",
       "whatsapp": "081234567890",
       "role": "Pelanggan",
       "kreditSisa": 0,
-      "uploadHarianSisa": 20,
-      "totalUploadHarianLimit": 20,
+      "uploadHarianSisa": 5,
+      "totalUploadHarianLimit": 5,
       "password": "password123",
-      "sessionToken": "e8b3287a7c192f681baa27f1867dd427c34af00b9a6c6ffceb931a31e9cd8251"
+      "sessionToken": "7f0e042bbab8b9bd65a9a2240d055d1bb74f5aec506ff5328b7d30283a52c1bc"
     }
   ],
   "extraTools": [
     {
-      "creditCost": 10,
-      "id": "tool-1",
       "name": "Turnitin AI Detection Check",
+      "id": "tool-1",
       "description": "Mendeteksi secara mendalam persentase konten buatan AI (Artificial Intelligence) seperti ChatGPT/Claude.",
+      "creditCost": 10,
       "isEnabled": false
     },
     {
+      "name": "Paraphrase Premium Humanizer",
+      "id": "tool-2",
       "description": "Membantu parafrase otomatis naskah yang terindikasi plagiasi tinggi agar kembali bertenaga orisinal.",
       "isEnabled": true,
-      "creditCost": 15,
-      "id": "tool-2",
-      "name": "Paraphrase Premium Humanizer"
+      "creditCost": 15
     },
     {
       "description": "Meneliti struktur kalimat dan tanda baca berstandar kompas publikasi Elsevier/Scopus.",

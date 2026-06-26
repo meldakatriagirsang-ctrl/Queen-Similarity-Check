@@ -1000,8 +1000,6 @@ export default function App() {
             return;
           }
         } catch (_) {
-          // If JSON parse failed (e.g. cookie gating HTML was returned instead)
-          if (fallbackLogin()) return;
           setAuthError("Gagal masuk dengan status server: Respon bukan JSON.");
           return;
         }
@@ -1019,8 +1017,7 @@ export default function App() {
       setAuthError(errorMessage);
 
     } catch (err) {
-      console.error("Gagal melakukan autentikasi masuk, mencoba login lokal...", err);
-      if (fallbackLogin()) return;
+      console.error("Gagal melakukan autentikasi masuk:", err);
       setAuthError("Koneksi jaringan gagal atau server tidak merespon.");
     }
   };
@@ -1094,7 +1091,6 @@ export default function App() {
             return;
           }
         } catch (_) {
-          if (fallbackRegister()) return;
           setAuthError("Pendaftaran gagal: Respon bukan JSON.");
           return;
         }
@@ -1112,8 +1108,7 @@ export default function App() {
       setAuthError(errorMessage);
 
     } catch (err) {
-      console.error("Gagal melakukan registrasi pelanggan baru, mencoba lokal...", err);
-      if (fallbackRegister()) return;
+      console.error("Gagal melakukan registrasi pelanggan baru:", err);
       setAuthError("Pendaftaran terhambat kendala jaringan. Silakan coba lagi nanti.");
     }
   };
