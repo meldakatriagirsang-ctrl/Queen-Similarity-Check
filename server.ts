@@ -202,7 +202,7 @@ function getAuthorizedUser(req: any, currentState: AppState): any {
   const token = req.headers["x-auth-token"] || req.query.authToken;
   if (!email || !token) return null;
   
-  const user = currentState.customers.find((c: any) => c.email && c.email.toLowerCase() === email.toLowerCase());
+  const user = currentState.customers.find((c: any) => c && c.email && c.email.toLowerCase() === email.toLowerCase());
   if (user && user.sessionToken === token) {
     return user;
   }
@@ -213,7 +213,8 @@ function getAuthorizedUser(req: any, currentState: AppState): any {
 function sanitizeState(state: AppState): any {
   return {
     ...state,
-    customers: state.customers.map((c: any) => {
+    customers: (state.customers || []).map((c: any) => {
+      if (!c || !c.email) return c;
       const { password, resetToken, resetTokenExpires, sessionToken, ...rest } = c;
       return rest;
     })
@@ -529,7 +530,7 @@ app.post("/api/upload-file", upload.single("file"), async (req, res) => {
 
   // Safely decrease credit of the active customer who uploaded it
   currentState.customers = currentState.customers.map(cust => {
-    if (cust.email.toLowerCase() === finalDoc.ownerEmail.toLowerCase()) {
+    if (cust && cust.email && cust.email.toLowerCase() === finalDoc.ownerEmail.toLowerCase()) {
       return {
         ...cust,
         kreditSisa: Math.max(0, cust.kreditSisa - cost),
