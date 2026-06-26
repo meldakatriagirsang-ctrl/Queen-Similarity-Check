@@ -5,7 +5,7 @@ import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import fs from "fs";
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import multer from "multer";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
@@ -357,6 +357,89 @@ function mergeFiles(localList: any[], remoteList: any[]): any[] {
   return merged;
 }
 
+let isFirestoreListenerStarted = false;
+
+function startRealtimeFirestoreSync() {
+  if (!db) return;
+  if (isFirestoreListenerStarted) {
+    console.log("🔥 Firestore synchronization listeners already started, skipping duplicates.");
+    return;
+  }
+  isFirestoreListenerStarted = true;
+  console.log("🔥 Starting real-time Firestore synchronization listeners...");
+
+  onSnapshot(doc(db, "app", "settings"), (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const state = loadState();
+    let updated = false;
+
+    if (data.adminAnnouncement !== undefined && state.adminAnnouncement !== data.adminAnnouncement) {
+      state.adminAnnouncement = data.adminAnnouncement;
+      updated = true;
+    }
+    if (data.autoSimulationEnabled !== undefined && state.autoSimulationEnabled !== data.autoSimulationEnabled) {
+      state.autoSimulationEnabled = data.autoSimulationEnabled;
+      updated = true;
+    }
+    if (data.extraTools !== undefined && JSON.stringify(state.extraTools) !== JSON.stringify(data.extraTools)) {
+      state.extraTools = data.extraTools;
+      updated = true;
+    }
+    if (data.turnitinPrice !== undefined && state.turnitinPrice !== data.turnitinPrice) {
+      state.turnitinPrice = data.turnitinPrice;
+      updated = true;
+    }
+    if (data.isUploadLocked !== undefined && state.isUploadLocked !== data.isUploadLocked) {
+      state.isUploadLocked = data.isUploadLocked;
+      updated = true;
+    }
+    if (data.workingHours !== undefined && state.workingHours !== data.workingHours) {
+      state.workingHours = data.workingHours;
+      updated = true;
+    }
+
+    if (updated) {
+      console.log("🔥 [Firestore Settings Listener] Local state updated from Cloud.");
+      cachedInMemoryState = state;
+      fs.writeFileSync(DB_FILE, JSON.stringify(state, null, 2), "utf-8");
+      broadcastState(state);
+    }
+  });
+
+  onSnapshot(doc(db, "app", "customers"), (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+    if (data && data.customers && Array.isArray(data.customers)) {
+      const state = loadState();
+      const incomingMerged = mergeCustomers(state.customers, data.customers);
+      if (JSON.stringify(state.customers) !== JSON.stringify(incomingMerged)) {
+        console.log("🔥 [Firestore Customers Listener] Local state updated with new customers from Cloud.");
+        state.customers = incomingMerged;
+        cachedInMemoryState = state;
+        fs.writeFileSync(DB_FILE, JSON.stringify(state, null, 2), "utf-8");
+        broadcastState(state);
+      }
+    }
+  });
+
+  onSnapshot(doc(db, "app", "files"), (snap) => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+    if (data && data.files && Array.isArray(data.files)) {
+      const state = loadState();
+      const incomingMerged = mergeFiles(state.files, data.files);
+      if (JSON.stringify(state.files) !== JSON.stringify(incomingMerged)) {
+        console.log("🔥 [Firestore Files Listener] Local state updated with files from Cloud.");
+        state.files = incomingMerged;
+        cachedInMemoryState = state;
+        fs.writeFileSync(DB_FILE, JSON.stringify(state, null, 2), "utf-8");
+        broadcastState(state);
+      }
+    }
+  });
+}
+
 async function syncFromFirestore(attempt = 1) {
   if (!db) {
     console.log("Firebase DB not initialized, skipping Cloud Firestore database restore.");
@@ -417,6 +500,7 @@ async function syncFromFirestore(attempt = 1) {
       saveState(state);
     }
     isRestoreCompleted = true;
+    startRealtimeFirestoreSync();
   } catch (err) {
     console.error(`Gagal sinkronisasi data dari Firestore on startup (Attempt ${attempt}):`, err);
     isRestoreCompleted = true; // Complete to unblock client gating and avoid holding requests captive!
