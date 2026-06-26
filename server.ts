@@ -1172,16 +1172,13 @@ app.post("/api/update-customers", (req, res) => {
     return res.status(400).json({ error: "customers array is required" });
   }
 
-  // Defensive deep merge to protect accounts and prevent any data loss,
-  // while supporting deletion by filtering out accounts that the admin deleted.
-  const incomingEmails = new Set(incomingCustomers.map((c: any) => c && c.email && c.email.toLowerCase()));
-  const filteredCurrent = currentState.customers.filter((c: any) => c && c.email && incomingEmails.has(c.email.toLowerCase()));
-
-  const merged = [...filteredCurrent];
+  // Safe merge: we only update accounts that exist in incomingCustomers.
+  // We do NOT delete any account that is in database but missing from incomingCustomers (since they might have registered in the meantime).
+  const merged = [...currentState.customers];
 
   incomingCustomers.forEach(incoming => {
     if (!incoming || !incoming.email) return;
-    const existingIdx = merged.findIndex(c => c.email.toLowerCase() === incoming.email.toLowerCase());
+    const existingIdx = merged.findIndex(c => c && c.email && c.email.toLowerCase() === incoming.email.toLowerCase());
     if (existingIdx !== -1) {
       // Update details but preserve password, role, and other records unless explicitly modified
       merged[existingIdx] = {
@@ -1201,6 +1198,37 @@ app.post("/api/update-customers", (req, res) => {
   });
 
   currentState.customers = enforceAdminProfiles(merged);
+  saveState(currentState);
+  res.json({ success: true, updatedState: currentState });
+});
+
+app.post("/api/delete-customer", (req, res) => {
+  const currentState = loadState();
+
+  // Verify Admin authorization
+  const authUser = getAuthorizedUser(req, currentState);
+  if (!authUser || authUser.role !== "Admin") {
+    return res.status(403).json({ error: "Akses ditolak. Hanya Administrator yang dapat menghapus data pelanggan." });
+  }
+
+  const { email } = req.body;
+  if (!email || typeof email !== "string") {
+    return res.status(400).json({ error: "Email wajib diisi." });
+  }
+
+  const targetEmail = email.toLowerCase().trim();
+  if (targetEmail === "meldakatriagirsang@gmail.com" || targetEmail === "dolokimun65@yahoo.com") {
+    return res.status(400).json({ error: "Tidak dapat menghapus akun Administrator Utama!" });
+  }
+
+  const initialLength = currentState.customers.length;
+  currentState.customers = currentState.customers.filter(c => c && c.email && c.email.toLowerCase().trim() !== targetEmail);
+
+  if (currentState.customers.length === initialLength) {
+    return res.status(404).json({ error: "Pelanggan tidak ditemukan." });
+  }
+
+  currentState.customers = enforceAdminProfiles(currentState.customers);
   saveState(currentState);
   res.json({ success: true, updatedState: currentState });
 });

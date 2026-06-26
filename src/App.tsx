@@ -1311,6 +1311,20 @@ export default function App() {
     }
   };
 
+  const handleDeleteCustomer = async (email: string) => {
+    const updated = customers.filter(c => c.email.toLowerCase() !== email.toLowerCase());
+    setCustomers(updated);
+    try {
+      await authenticatedFetch("/api/delete-customer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+    } catch (err) {
+      console.error("Gagal menghapus data pelanggan di server:", err);
+    }
+  };
+
   const handleAddPurchasedCredits = async (creditsToAdd: number) => {
     if (userProfile.role !== "Admin") {
       alert(`Permintaan pembelian paket pengerjaan berhasil diajukan!\nSilakan lakukan transfer pembayaran sesuai instruksi, lalu kirimkan bukti transfer Anda ke WhatsApp Admin Kak Melda.\n\nKredit Anda akan segera ditambahkan secara manual oleh Admin setelah pembayaran dikonfirmasi.`);
@@ -3497,8 +3511,7 @@ export default function App() {
                                             return;
                                           }
                                           if (confirm(`Apakah Kak Melda yakin ingin menghapus pelanggan "${cust.fullName}" (${cust.email})?`)) {
-                                            const updated = customers.filter(c => c.email.toLowerCase() !== cust.email.toLowerCase());
-                                            handleUpdateCustomersList(updated);
+                                            handleDeleteCustomer(cust.email);
                                           }
                                         }}
                                         className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 flex items-center justify-center cursor-pointer duration-100 transition"
