@@ -1065,8 +1065,8 @@ app.post("/api/auth/register", authLimiter, (req, res) => {
     whatsapp,
     role: "Pelanggan",
     kreditSisa: 0,
-    uploadHarianSisa: 5,
-    totalUploadHarianLimit: 5,
+    uploadHarianSisa: 100,
+    totalUploadHarianLimit: 100,
     password,
     sessionToken: token
   };
@@ -1172,8 +1172,12 @@ app.post("/api/update-customers", (req, res) => {
     return res.status(400).json({ error: "customers array is required" });
   }
 
-  // Defensive deep merge to protect accounts and prevent any data loss
-  const merged = [...currentState.customers];
+  // Defensive deep merge to protect accounts and prevent any data loss,
+  // while supporting deletion by filtering out accounts that the admin deleted.
+  const incomingEmails = new Set(incomingCustomers.map((c: any) => c && c.email && c.email.toLowerCase()));
+  const filteredCurrent = currentState.customers.filter((c: any) => c && c.email && incomingEmails.has(c.email.toLowerCase()));
+
+  const merged = [...filteredCurrent];
 
   incomingCustomers.forEach(incoming => {
     if (!incoming || !incoming.email) return;

@@ -1068,8 +1068,8 @@ export default function App() {
         whatsapp: registerWhatsApp.trim(),
         role: "Pelanggan",
         kreditSisa: 0,
-        uploadHarianSisa: 5,
-        totalUploadHarianLimit: 5,
+        uploadHarianSisa: 100,
+        totalUploadHarianLimit: 100,
         password: registerPassword
       };
 
@@ -1111,8 +1111,9 @@ export default function App() {
         }
       }
 
-      // Try local fallback if server returns any error (e.g. 502, 404, or other error)
-      if (!res.ok) {
+      // Only fallback to local registration if the server returns a 5xx server-side error.
+      // For validation/client errors (4xx like username or email already taken), we MUST show the actual server error.
+      if (res.status >= 500) {
         if (fallbackRegister()) {
           return;
         }
