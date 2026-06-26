@@ -1111,9 +1111,9 @@ export default function App() {
         }
       }
 
-      // Only fallback to local registration if the server returns a 5xx server-side error.
-      // For validation/client errors (4xx like username or email already taken), we MUST show the actual server error.
-      if (res.status >= 500) {
+      // Fallback to local registration if the server returns a 5xx server-side error or a 404 routing error.
+      // For proper validation errors (like 400 Bad Request when username or email is already taken), we show the specific validation error.
+      if (res.status === 404 || res.status >= 500) {
         if (fallbackRegister()) {
           return;
         }
