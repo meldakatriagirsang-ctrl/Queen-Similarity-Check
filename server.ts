@@ -992,7 +992,7 @@ async function sendResetEmail(email: string, resetLink: string, fullName: string
 }
 
 app.post("/api/auth/login", authLimiter, (req, res) => {
-  console.log("Login attempt received:", req.body.username);
+  console.log("[HTTP] POST /api/auth/login received. Body:", req.body);
   const { username, password } = req.body;
   if (!username || !password) {
     return res.status(400).json({ error: "Username/email dan password wajib diisi." });
@@ -1034,55 +1034,66 @@ app.post("/api/auth/login", authLimiter, (req, res) => {
 });
 
 app.post("/api/auth/register", authLimiter, (req, res) => {
-  const { fullName, whatsapp, username, email, password } = req.body;
-  if (!fullName || !whatsapp || !username || !password) {
-    return res.status(400).json({ error: "Mohon lengkapi seluruh data pendaftaran." });
+  console.log("[HTTP] POST /api/auth/register received. Body:", req.body);
+  try {
+    const { fullName, whatsapp, username, email, password } = req.body || {};
+    if (!fullName || !whatsapp || !username || !password) {
+      console.warn("[HTTP] POST /api/auth/register failed validation: missing fields");
+      return res.status(400).json({ error: "Mohon lengkapi seluruh data pendaftaran." });
+    }
+
+    const cleanUsername = username.toLowerCase().trim();
+    const newEmail = (email || `${cleanUsername}@kingsimilarity.com`).toLowerCase().trim();
+
+    const currentState = loadState();
+
+    // 1. Check if username is taken safely
+    const usernameTaken = currentState.customers.some(c => c && typeof c.username === "string" && c.username.toLowerCase().trim() === cleanUsername);
+    if (usernameTaken) {
+      console.warn(`[HTTP] POST /api/auth/register username already taken: ${cleanUsername}`);
+      return res.status(400).json({ error: "Pendaftaran Gagal! Username ini sudah digunakan." });
+    }
+
+    // 2. Check if email is taken safely
+    const emailTaken = currentState.customers.some(c => c && typeof c.email === "string" && c.email.toLowerCase().trim() === newEmail);
+    if (emailTaken) {
+      console.warn(`[HTTP] POST /api/auth/register email already taken: ${newEmail}`);
+      return res.status(400).json({ error: "Pendaftaran Gagal! Email ini sudah terdaftar." });
+    }
+
+    // Generate secure session token
+    const token = crypto.randomBytes(32).toString("hex");
+
+    const newCust = {
+      username: cleanUsername,
+      fullName,
+      email: newEmail,
+      whatsapp,
+      role: "Pelanggan",
+      kreditSisa: 0,
+      uploadHarianSisa: 100,
+      totalUploadHarianLimit: 100,
+      password,
+      sessionToken: token
+    };
+
+    currentState.customers.push(newCust);
+    saveState(currentState);
+
+    console.log(`[HTTP] POST /api/auth/register success. Created customer: ${newEmail}`);
+
+    // Return safe profile
+    const { password: _, ...safeProfile } = newCust;
+
+    return res.json({
+      success: true,
+      userProfile: safeProfile,
+      sessionToken: token
+    });
+  } catch (err: any) {
+    console.error("[HTTP] Error during POST /api/auth/register:", err);
+    return res.status(500).json({ error: "Terjadi kesalahan internal server saat pendaftaran: " + err.message });
   }
-
-  const cleanUsername = username.toLowerCase().trim();
-  const newEmail = (email || `${cleanUsername}@kingsimilarity.com`).toLowerCase().trim();
-
-  const currentState = loadState();
-
-  // 1. Check if username is taken safely
-  const usernameTaken = currentState.customers.some(c => c && typeof c.username === "string" && c.username.toLowerCase().trim() === cleanUsername);
-  if (usernameTaken) {
-    return res.status(400).json({ error: "Pendaftaran Gagal! Username ini sudah digunakan." });
-  }
-
-  // 2. Check if email is taken safely
-  const emailTaken = currentState.customers.some(c => c && typeof c.email === "string" && c.email.toLowerCase().trim() === newEmail);
-  if (emailTaken) {
-    return res.status(400).json({ error: "Pendaftaran Gagal! Email ini sudah terdaftar." });
-  }
-
-  // Generate secure session token
-  const token = crypto.randomBytes(32).toString("hex");
-
-  const newCust = {
-    username: cleanUsername,
-    fullName,
-    email: newEmail,
-    whatsapp,
-    role: "Pelanggan",
-    kreditSisa: 0,
-    uploadHarianSisa: 100,
-    totalUploadHarianLimit: 100,
-    password,
-    sessionToken: token
-  };
-
-  currentState.customers.push(newCust);
-  saveState(currentState);
-
-  // Return safe profile
-  const { password: _, ...safeProfile } = newCust;
-
-  return res.json({
-    success: true,
-    userProfile: safeProfile,
-    sessionToken: token
-  });
 });
 
 app.post("/api/auth/forgot-password", async (req, res) => {
