@@ -1111,8 +1111,8 @@ export default function App() {
         }
       }
 
-      // Try local fallback only if server returns 5xx error
-      if (res.status >= 500) {
+      // Try local fallback if server returns any error (e.g. 502, 404, or other error)
+      if (!res.ok) {
         if (fallbackRegister()) {
           return;
         }
