@@ -304,7 +304,7 @@ function saveState(state: AppState) {
           workingHours: state.workingHours || "08.00 am - 09.00 pm • WITA"
         }),
         setDoc(doc(db, "app", "customers"), {
-          customers: state.customers || []
+          customers: enforceAdminProfiles(state.customers || [])
         }),
         setDoc(doc(db, "app", "files"), {
           files: state.files || []
@@ -502,8 +502,7 @@ async function syncFromFirestore(attempt = 1) {
     isRestoreCompleted = true;
     startRealtimeFirestoreSync();
   } catch (err) {
-    console.error(`Gagal sinkronisasi data dari Firestore on startup (Attempt ${attempt}):`, err);
-    isRestoreCompleted = true; // Complete to unblock client gating and avoid holding requests captive!
+    console.error(`Gagal sinkronisasi data dari Firestore on startup (Attempt ${attempt}/5):`, err);
     if (attempt < 5) {
       const delay = Math.min(1000 * Math.pow(2, attempt), 10000); // exponential backoff
       console.log(`Retrying Firestore sync in ${delay}ms...`);
@@ -512,6 +511,9 @@ async function syncFromFirestore(attempt = 1) {
       }, delay);
     } else {
       console.error("Firestore sync completely failed after 5 attempts. Relying on local backup DB file.");
+      hasSuccessfullyRestoredFromFirestore = true; // Safe fallback: allow future saves
+      isRestoreCompleted = true; // Unblock the gating queue
+      startRealtimeFirestoreSync(); // Try to start listeners anyway
     }
   }
 }
@@ -537,9 +539,10 @@ app.use(async (req, res, next) => {
   if (req.path.startsWith("/api/") && !isRestoreCompleted) {
     try {
       console.log(`🔌 Route ${req.path} waiting for Cloud Firestore restore completion...`);
+      // Wait up to 15 seconds to allow full restore + retry attempts to finish cleanly, preventing data overwrites
       await Promise.race([
         restorePromise,
-        new Promise(resolve => setTimeout(resolve, 1000)) // Max wait 1 second to feel snapping-fast!
+        new Promise(resolve => setTimeout(resolve, 15000))
       ]);
     } catch (e) {
       console.error("Error/timeout while gating route for Firestore restore:", e);
