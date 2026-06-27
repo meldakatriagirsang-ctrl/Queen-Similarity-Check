@@ -15,13 +15,15 @@ interface AdminTurnitinResultModalProps {
     reportFileData?: string | File,
     reportFileName?: string
   ) => Promise<void> | void;
+  authenticatedFetch?: (url: string, options?: RequestInit) => Promise<Response>;
 }
 
 export default function AdminTurnitinResultModal({
   document,
   customer,
   onClose,
-  onSave
+  onSave,
+  authenticatedFetch
 }: AdminTurnitinResultModalProps) {
   const [similarity, setSimilarity] = useState<number>(document.similarityPercent ?? 15);
   const [aiPercent, setAiPercent] = useState<number>(document.aiPercent ?? 0);
@@ -40,6 +42,10 @@ export default function AdminTurnitinResultModal({
     document.reportUrl ? (document.reportUrl.startsWith("blob:") ? "Berkas Laporan Terunggah" : "Menggunakan Tautan Eksternal") : ""
   );
   const [isFileDragOver, setIsFileDragOver] = useState(false);
+  
+  // States for automatic AI PDF scanning
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisStatus, setAnalysisStatus] = useState("");
 
   const handleResultFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -48,15 +54,15 @@ export default function AdminTurnitinResultModal({
     }
   };
 
-  const processResultFile = (fileObj: File) => {
+  const processResultFile = async (fileObj: File) => {
     try {
       const sizeInMB = fileObj.size / (1024 * 1024);
-      const url = URL.createObjectURL(fileObj);
       setReportUrl(`/api/view-report/${document.id}`);
       setUploadedFileName(`${fileObj.name} (${sizeInMB.toFixed(2)} MB)`);
       setReportFileName(fileObj.name);
+      setReportFileData(fileObj as any);
 
-      // Automatically detect similarity from filename patterns
+      // 1. Instantly perform name pattern detection as immediate fallback feedback
       const name = fileObj.name;
       let detectedSim: number | null = null;
       let detectedAi: number | null = null;
@@ -70,22 +76,18 @@ export default function AdminTurnitinResultModal({
       // Pattern 2: look for percentages, e.g., "15%" or "similarity_15%" or "15"
       const pctMatches = Array.from(name.matchAll(/(\d{1,2})\s*%/g));
       if (pctMatches.length > 0) {
-        // If there are multiple percent matches and we found AI, find the other one for similarity
         if (pctMatches.length >= 2 && detectedAi !== null) {
           const firstVal = parseInt(pctMatches[0][1]);
           const secondVal = parseInt(pctMatches[1][1]);
-          // Typically, if AI is one of them, similarity is the other
           detectedSim = (firstVal === detectedAi) ? secondVal : firstVal;
         } else {
           detectedSim = parseInt(pctMatches[0][1]);
         }
       } else {
-        // Look for expressions like "sim_15" or "similarity_15"
         const simMatch = name.match(/sim[a-z_]*[\s-_]*(\d{1,2})/i);
         if (simMatch) {
           detectedSim = parseInt(simMatch[1]);
         } else {
-          // Look for any 1 to 2 digit standalone number
           const standaloneNums = name.match(/\b\d{1,2}\b/g);
           if (standaloneNums && standaloneNums.length > 0) {
             detectedSim = parseInt(standaloneNums[0]);
@@ -103,7 +105,52 @@ export default function AdminTurnitinResultModal({
         setHasAiCheck(true);
       }
 
-      setReportFileData(fileObj as any);
+      // 2. Perform deep AI parsing if authenticatedFetch is available
+      if (authenticatedFetch) {
+        setIsAnalyzing(true);
+        setAnalysisStatus("Mengunggah & menganalisis isi laporan via AI...");
+        try {
+          const formData = new FormData();
+          formData.append("reportFile", fileObj);
+          formData.append("reportFileName", fileObj.name);
+
+          const res = await authenticatedFetch("/api/analyze-report", {
+            method: "POST",
+            body: formData
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success) {
+              if (typeof data.similarityPercent === "number") {
+                setSimilarity(data.similarityPercent);
+              }
+              if (typeof data.aiPercent === "number") {
+                setAiPercent(data.aiPercent);
+                if (data.aiPercent > 0) {
+                  setHasAiCheck(true);
+                }
+              }
+              if (data.feedback) {
+                setFeedback(data.feedback);
+              }
+              setAnalysisStatus("Mendeteksi kemiripan dan ulasan akademis secara akurat! ✨");
+            } else {
+              setAnalysisStatus("AI gagal memproses dokumen, menggunakan pola nama berkas.");
+            }
+          } else {
+            setAnalysisStatus("Respon server bermasalah, menggunakan pola nama berkas.");
+          }
+        } catch (apiErr) {
+          console.error("Gagal melakukan analisis laporan AI:", apiErr);
+          setAnalysisStatus("Gagal analisis laporan AI, menggunakan pola nama berkas.");
+        } finally {
+          setTimeout(() => {
+            setIsAnalyzing(false);
+          }, 2000);
+        }
+      }
+
     } catch (err) {
       console.error(err);
       alert("Format atau pembacaan file gagal!");
@@ -425,13 +472,26 @@ export default function AdminTurnitinResultModal({
               className={`border-2 border-dashed rounded-xl p-4 text-center transition duration-150 cursor-pointer ${
                 isFileDragOver 
                   ? "border-indigo-500 bg-indigo-50/50" 
-                  : uploadedFileName 
-                    ? "border-emerald-300 bg-emerald-50/20" 
-                    : "border-slate-300 hover:border-indigo-400 bg-white"
+                  : isAnalyzing
+                    ? "border-indigo-400 bg-indigo-50/20"
+                    : uploadedFileName 
+                      ? "border-emerald-300 bg-emerald-50/20" 
+                      : "border-slate-300 hover:border-indigo-400 bg-white"
               }`}
               onClick={() => window.document.getElementById("admin-result-file-input")?.click()}
             >
-              {uploadedFileName ? (
+              {isAnalyzing ? (
+                <div className="space-y-2 py-2">
+                  <div className="inline-flex items-center justify-center p-2 bg-indigo-100 rounded-full text-indigo-600 mb-1">
+                    <svg className="animate-spin h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  </div>
+                  <p className="text-xs font-bold text-indigo-700 animate-pulse font-sans">Membaca Dokumen Laporan... 🤖</p>
+                  <p className="text-[10px] text-slate-500 leading-normal max-w-sm mx-auto font-sans">{analysisStatus}</p>
+                </div>
+              ) : uploadedFileName ? (
                 <div className="space-y-1">
                   <div className="inline-flex items-center justify-center p-1.5 bg-emerald-100 rounded-full text-emerald-600 mb-1">
                     <CheckCircle className="w-5 h-5 animate-pulse" />

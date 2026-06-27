@@ -647,8 +647,13 @@ export default function App() {
   const updateClientStateWithData = (data: any) => {
     if (data.files) {
       setFiles((prevFiles) => {
+        // Keep any local files that are currently uploading/processing ("Memproses") and not yet present in data.files
+        const serverIds = new Set((data.files || []).map((f: any) => f.id));
+        const localProcessing = prevFiles.filter(f => f.status === "Memproses" && !serverIds.has(f.id));
+        const mergedFiles = [...localProcessing, ...(data.files || [])];
+
         if (userProfile.role === "Admin") {
-          const currentIds = data.files.map((f: any) => f.id);
+          const currentIds = mergedFiles.map((f: any) => f.id);
           const seenIds = seenFileIdsRef.current;
           
           if (seenIds.length === 0) {
@@ -659,7 +664,7 @@ export default function App() {
             } catch (e) { /* ignore */ }
           } else {
             // We have a base list of seen files. Any new files trigger alarm!
-            const unseenFiles = data.files.filter((f: any) => !seenIds.includes(f.id));
+            const unseenFiles = mergedFiles.filter((f: any) => !seenIds.includes(f.id));
             if (unseenFiles.length > 0) {
               const updatedSeen = Array.from(new Set([...seenIds, ...currentIds]));
               seenFileIdsRef.current = updatedSeen;
@@ -672,7 +677,7 @@ export default function App() {
             }
           }
         }
-        return data.files;
+        return mergedFiles;
       });
     }
     if (data.customers) {
@@ -4599,6 +4604,7 @@ export default function App() {
           document={activeAdminModalDoc}
           customer={customers.find(c => c.email.toLowerCase() === (activeAdminModalDoc.ownerEmail || "").toLowerCase()) || null}
           onClose={() => setActiveAdminModalDoc(null)}
+          authenticatedFetch={authenticatedFetch}
            onSave={async (docId, similarity, aiScore, feedbackText, repUrl, reportFileData, reportFileName) => {
             const updates = {
               status: "Selesai" as const,
