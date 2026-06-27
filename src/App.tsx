@@ -1332,7 +1332,7 @@ export default function App() {
     }
   };
 
-  // Add simulated uploaded document
+  // Add simulated uploaded document with Chunked Upload method
   const handleUploadSuccess = async (newDoc: CheckedDocument, fileData?: string | File) => {
     // Fill owner email
     const ownerEmail = userProfile.email || "meldakatriagirsang@gmail.com";
@@ -1353,37 +1353,103 @@ export default function App() {
     // 2. Optimistic update: Instantly append the document to the local files list so it is shown immediately!
     setFiles(prev => [finalDoc, ...prev]);
 
-    // 3. Initialize starting progress indicators instantly
+    // 3. Initialize starting progress indicators instantly (e.g., 0% uploading)
     setProcessingProgress(prev => ({
       ...prev,
       [newDoc.id]: 0
     }));
 
-    // 4. Synergize with server in the background using FormData
+    // 4. Implement Chunked Upload sequentially in the background
     try {
-      const formData = new FormData();
-      formData.append("ownerEmail", ownerEmail);
-      formData.append("newDoc", JSON.stringify(newDoc));
-
+      // Prepare uniform Blob for upload
+      let fileBlob: Blob;
       if (fileData instanceof File) {
-        formData.append("file", fileData);
-      } else if (fileData) {
-        formData.append("fileData", fileData);
+        fileBlob = fileData;
+      } else if (typeof fileData === "string") {
+        const base64Clean = fileData.replace(/^data:.*;base64,/, "");
+        const binaryStr = atob(base64Clean);
+        const len = binaryStr.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+        fileBlob = new Blob([bytes], { type: "application/octet-stream" });
+      } else {
+        fileBlob = new Blob(["Simulasi konten dokumen akademis"], { type: "text/plain" });
       }
 
-      const res = await authenticatedFetch("/api/upload-file", {
+      const CHUNK_SIZE = 512 * 1024; // 512 KB per chunk for robust transmission
+      const fileSize = fileBlob.size;
+      const totalChunks = Math.max(1, Math.ceil(fileSize / CHUNK_SIZE));
+
+      // Sequential Chunked Upload Loop
+      for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+        const start = chunkIndex * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, fileSize);
+        const chunkSlice = fileBlob.slice(start, end);
+
+        const chunkFormData = new FormData();
+        chunkFormData.append("chunk", chunkSlice);
+        chunkFormData.append("fileId", newDoc.id);
+        chunkFormData.append("chunkIndex", String(chunkIndex));
+        chunkFormData.append("totalChunks", String(totalChunks));
+        chunkFormData.append("filename", newDoc.filename);
+
+        const chunkRes = await authenticatedFetch("/api/upload-chunk", {
+          method: "POST",
+          body: chunkFormData
+        });
+
+        if (!chunkRes.ok) {
+          throw new Error(`Gagal mengunggah potongan berkas ke-${chunkIndex + 1}`);
+        }
+
+        // Upload progress contributes to first 39% of total progress representation
+        const uploadProgressPercent = Math.round(((chunkIndex + 1) / totalChunks) * 100);
+        setProcessingProgress(prev => ({
+          ...prev,
+          [newDoc.id]: Math.min(39, Math.round(uploadProgressPercent * 0.39))
+        }));
+      }
+
+      // Complete Chunked Upload and Trigger Background Checking
+      const completeRes = await authenticatedFetch("/api/complete-upload", {
         method: "POST",
-        body: formData
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileId: newDoc.id,
+          filename: newDoc.filename,
+          title: newDoc.title,
+          checkType: newDoc.checkType || "Standard",
+          creditCost: cost,
+          excludeBibliography: newDoc.filters?.excludeBibliography,
+          excludeQuotes: newDoc.filters?.excludeQuotes,
+          excludeSmallSources: newDoc.filters?.excludeSmallSources,
+          fileSize: newDoc.fileSize
+        })
       });
-      if (res.ok) {
-        const data = await res.json();
+
+      if (completeRes.ok) {
+        const data = await completeRes.json();
         if (data.updatedState) {
           setFiles(data.updatedState.files);
           setCustomers(data.updatedState.customers);
         }
+        // Set to 40% when upload completes and background processing starts
+        setProcessingProgress(prev => ({
+          ...prev,
+          [newDoc.id]: 40
+        }));
+      } else {
+        const errData = await completeRes.json();
+        throw new Error(errData.error || "Gagal menyelesaikan proses penggabungan berkas di server");
       }
-    } catch (err) {
-      console.error("Gagal mengunggah file ke database server:", err);
+
+    } catch (err: any) {
+      console.error("Kesalahan proses chunked upload:", err);
+      alert(`Peringatan Upload Gagal: ${err.message || "Masalah koneksi jaringan"}`);
+      // Revert optimistic updates
+      setFiles(prev => prev.filter(f => f.id !== newDoc.id));
     }
   };
 
@@ -3150,7 +3216,19 @@ export default function App() {
                                     </a>
                                   </div>
                                 ) : file.status === "Memproses" ? (
-                                  <span className="text-[11px] font-sans text-slate-400 italic">Memindai database...</span>
+                                  <div className="flex flex-col items-end gap-1">
+                                    <span className="text-[11px] font-sans text-indigo-600 font-semibold animate-pulse">
+                                      {progress < 40 
+                                        ? `Mengunggah (${Math.min(99, Math.round((progress / 39) * 100))}%)` 
+                                        : `Memindai (${Math.round(progress)}%)`}
+                                    </span>
+                                    <div className="w-24 bg-slate-100 rounded-full h-1">
+                                      <div 
+                                        className="bg-indigo-600 h-1 rounded-full transition-all duration-300" 
+                                        style={{ width: `${progress}%` }}
+                                      ></div>
+                                    </div>
+                                  </div>
                                 ) : (
                                   <button
                                     onClick={() => alert(`Informasi Gagal:\n\n${file.feedback || "Dokumen rusak, hubungi admin."}`)}
